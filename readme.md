@@ -54,7 +54,9 @@ Qualitative  results.
 - requirements.txt
 ```
 
-**Core code** for VVO: ``object_centric_bench/model/vaez.py`` for Vector-Quantization; ``object_centric_bench/model/vqvfmocl.py`` for VVO overall architecture.
+**Core code for paper VVO**: 
+- ``object_centric_bench/model/vaez.py`` for Vector-Quantization;
+- ``object_centric_bench/model/vqvfmocl.py`` for VVO overall architecture.
 
 
 
