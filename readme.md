@@ -191,7 +191,7 @@ If you find this repo useful, please cite our work.
 @article{zhao2025vvo,
   title={{Vector-Quantized Vision Foundation Models for Object-Centric Learning}},
   author={Zhao, Rongzhen and Wang, Vivienne and Kannala, Juho and Pajarinen, Joni},
-  journal={arXiv preprint arXiv:2502.20263},
+  journal={ACM MM 2025},
   year={2025}
 }
 ```
