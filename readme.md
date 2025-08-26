@@ -190,6 +190,8 @@ I am now working on object-centric learning (OCL). If you have any cool ideas on
 - WeChat: Genera1Z
 - email: rongzhen.zhao@aalto.fi, zhaorongzhenagi@gmail.com
 
+If you are **applying OCL (not limited to this repo) to tasks like visual question answering, visual prediction/reasoning, world modeling and reinforcement learning**, I am also willing to be of your help.
+
 
 
 ### Citation
