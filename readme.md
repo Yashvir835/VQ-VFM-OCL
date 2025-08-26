@@ -184,7 +184,7 @@ model = class_name(key1=value1,..)
 
 
 
-## About
+## About Me 🤗
 
 I am now working on object-centric learning (OCL). If you have any cool ideas on OCL or issues about this repo, just contact me.
 - WeChat: Genera1Z
