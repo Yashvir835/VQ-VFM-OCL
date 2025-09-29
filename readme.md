@@ -54,7 +54,7 @@ Qualitative  results.
 - requirements.txt
 ```
 
-**Core code for paper VVO**: 
+## Core source code for paper VVO
 - ``object_centric_bench/model/vaez.py`` for Vector-Quantization;
 - ``object_centric_bench/model/vqvfmocl.py`` for VVO overall architecture.
 
@@ -79,7 +79,7 @@ Converted datasets, including ClevrTex, COCO, VOC and MOVi-D are available as [r
 
 
 
-## Model Checkpoints 🌟
+## Model Checkpoints & Training Logs 🌟
 
 ***The checkpoints for all the models in the two tables above*** are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases). All backbones are unified as DINO2-S/14.
 - [slatesteve](https://github.com/Genera1Z/VQ-VFM-OCL/releases/tag/slatesteve): SLATE on ClevrTex, COCO and VOC; STEVE on MOVi-D.
