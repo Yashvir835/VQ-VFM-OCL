@@ -2,7 +2,7 @@
 
 
 
-## Accepted to ACM MM 2025 as a Poster
+## Accepted to ACM MM 2025 as a Poster 🎉
 
 Official implementation of ACM MM 2025 paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**" available on [arXiv:2502.20263](https://arxiv.org/abs/2502.20263).
 
@@ -188,7 +188,9 @@ model = class_name(key1=value1,..)
 
 I am now working on object-centric learning (OCL). If you have any cool ideas on OCL or issues about this repo, just contact me.
 - WeChat: Genera1Z
-- email: rongzhen.zhao@aalto.fi, zhaorongzhenagi@gmail.com
+- GoogleScholar: [MqlwrKAAAAAJ](https://scholar.google.com/citations?hl=en&user=MqlwrKAAAAAJ&view_op=list_works&sortby=pubdate)
+- LinkedIn: [rongzhen-zhao-3b7215247](https://www.linkedin.com/in/rongzhen-zhao-3b7215247)
+- eMail: [rongzhen.zhao@aalto.fi](rongzhen.zhao@aalto.fi), [zhaorongzhenagi@gmail.com](zhaorongzhenagi@gmail.com)
 
 If you are **applying OCL (not limited to this repo) to tasks like visual question answering, visual prediction/reasoning, world modeling and reinforcement learning**, I am also willing to be of your help.
 
