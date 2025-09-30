@@ -2,7 +2,7 @@
 
 
 
-## About
+## Accepted to ACM MM 2025 as a Poster
 
 Official implementation of ACM MM 2025 paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**" available on [arXiv:2502.20263](https://arxiv.org/abs/2502.20263).
 
