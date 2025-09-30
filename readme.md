@@ -112,7 +112,7 @@ Use package versions no older than the specification.
 
 #### (2) Prepare datasets
 
-Convert original datasets into LMDB format: 
+Download converted datasets or convert original datasets into LMDB format: 
 ```shell
 python convert.py
 ```
