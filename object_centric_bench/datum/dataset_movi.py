@@ -8,7 +8,7 @@ import numpy as np
 import torch as pt
 import torch.utils.data as ptud
 
-from .utils import draw_segmentation_np, VideoCodec
+from ..util_datum import draw_segmentation_np, VideoCodec
 
 
 class MOVi(ptud.Dataset):

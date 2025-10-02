@@ -37,7 +37,7 @@ class SlotAttention(nn.Module):
         """
         input: in shape (b,h*w,c)
         query: in shape (b,n,c)
-        smask: slots' mask, shape=(b,n), dtype=bool
+        smask: slots' mask, shape=(b,n), dtype=bool. True means there is a valid slot.
         """
         b, n, c = query.shape
         self_num_iter = num_iter or self.num_iter
@@ -88,9 +88,10 @@ class SlotAttention(nn.Module):
 class CartesianPositionalEmbedding2d(nn.Module):
     """"""
 
-    def __init__(self, resolut, embed_dim):
+    def __init__(self, resolut: list, embed_dim: int):
         super().__init__()
-        self.pe = nn.Parameter(
+        assert len(resolut) == 2
+        self._pe = nn.Parameter(
             __class__.meshgrid(resolut)[None, ...], requires_grad=False
         )
         self.project = nn.Linear(4, embed_dim)
@@ -109,8 +110,12 @@ class CartesianPositionalEmbedding2d(nn.Module):
         output: in shape (b,h,w,c)
         """
         max_h, max_w = input.shape[1:3]
-        output = input + self.project(self.pe[:, :max_h, :max_w, :])
+        output = input + self.project(self._pe[:, :max_h, :max_w, :])
         return output
+
+    @property
+    def pe(self):
+        return self.project(self._pe)  # .flatten(1, -2)
 
 
 class LearntPositionalEmbedding(nn.Module):
@@ -118,12 +123,24 @@ class LearntPositionalEmbedding(nn.Module):
     PositionalEncoding: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
     """
 
-    def __init__(self, resolut: list, embed_dim: int):
+    def __init__(self, resolut: list, embed_dim: int, in_dim: int = 0):
         super().__init__()
         self.resolut = resolut
         self.embed_dim = embed_dim
-        self.pe = nn.Parameter(pt.zeros(1, *resolut, embed_dim), requires_grad=True)
-        nn.init.trunc_normal_(self.pe)
+        if in_dim:
+            self._pe = nn.Parameter(pt.zeros(1, *resolut, in_dim), requires_grad=True)
+            self._project = nn.Linear(in_dim, embed_dim)
+        else:
+            self._pe = nn.Parameter(
+                pt.zeros(1, *resolut, embed_dim), requires_grad=True
+            )
+        nn.init.trunc_normal_(self._pe)
+
+    @property
+    def pe(self):
+        if hasattr(self, "_project"):
+            return self._project(self._pe)
+        return self._pe
 
     def forward(self, input, retp=False):
         """

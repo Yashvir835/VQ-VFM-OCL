@@ -3,6 +3,7 @@ import math
 
 import numpy as np
 import torch as pt
+import torch.nn.functional as ptnf
 
 
 def lecun_normal_(tensor, scale=1.0):
@@ -36,13 +37,27 @@ def lecun_normal_(tensor, scale=1.0):
         tensor.mul_(std).add_(0)
 
 
-def sin_pos_enc(seq_len, d_model):
+def block_diag_with_offset(blocks, offset=0):
+    shapes = [b.shape for b in blocks]
+    rows = sum([s[0] for s in shapes]) + offset
+    cols = sum([s[1] for s in shapes]) + offset
+    result = pt.zeros(rows, cols, dtype=blocks[0].dtype)
+    r, c = 0, offset
+    for b in blocks:
+        h, w = b.shape
+        result[r : r + h, c : c + w] = b
+        r += h
+        c += w
+    return result[: rows - offset, : cols - offset]
+
+
+def sin_pos_emb(seq_len, d_model):
     """Sinusoidal absolute positional encoding."""
     inv_freq = 1.0 / (10000 ** (pt.arange(0.0, d_model, 2.0) / d_model))
     pos_seq = pt.arange(seq_len - 1, -1, -1).type_as(inv_freq)
     sin_inp = pt.outer(pos_seq, inv_freq)
     pos_emb = pt.cat([sin_inp.sin(), sin_inp.cos()], dim=-1)
-    return pos_emb.unsqueeze(0)  # [1, L, C]
+    return pos_emb  # .unsqueeze(0)  # [1, L, C]
 
 
 def find_groups(base=1024, g=4, r=0.5):
@@ -71,9 +86,16 @@ def find_groups(base=1024, g=4, r=0.5):
     return combin1
 
 
-def get_subclass_method_keys(obj, superclass):
-    return [
-        attr
-        for attr in dir(obj)
-        if callable(getattr(obj, attr)) and not hasattr(superclass, attr)
-    ]
+@pt.inference_mode()
+def interpolat_argmax_attent(attent, size, mode="bilinear"):
+    """Already optimized with PyTorch inference mode.
+
+    - attent: shape=(b,..,s,h,w), dtype=float
+    - segment: shape=(b,..,h,w), dtype=int; index segment
+    """
+    shape0 = attent.shape[:-3]
+    attent_ = attent.flatten(0, -4)  # (b*..,s,h,w)
+    attent_ = ptnf.interpolate(attent_, size=size, mode=mode)
+    segment_ = attent_.argmax(1).byte()  # (b*..,h,w)
+    segment = segment_.unflatten(0, shape0)
+    return segment

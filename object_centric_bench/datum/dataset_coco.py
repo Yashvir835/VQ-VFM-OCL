@@ -9,7 +9,7 @@ import numpy as np
 import torch as pt
 import torch.utils.data as ptud
 
-from .utils import draw_segmentation_np
+from ..util_datum import draw_segmentation_np
 
 
 class MSCOCO(ptud.Dataset):
@@ -20,7 +20,6 @@ class MSCOCO(ptud.Dataset):
     def __init__(
         self,
         data_file,
-        instance=...,
         extra_keys=["bbox", "segment", "clazz"],
         transform=lambda **_: _,
         max_spare=4,

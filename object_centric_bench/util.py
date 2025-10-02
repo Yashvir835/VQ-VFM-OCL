@@ -77,6 +77,134 @@ class Config(dict):
         return super(Config, self).pop(k, d)
 
 
+class DynamicConfig:
+
+    def __init__(self, data, root=None):
+        self.root = root if root else self  # point to root
+        for key, value in data.items():
+            if __class__.is_lambda_function(value):
+                prop = property(value)  # set attr to self, not self.__class__
+            elif isinstance(value, (list, tuple)):  # support [{}], not [[{}]]
+                prop = [
+                    DynamicConfig(_, self.root) if isinstance(_, dict) else _
+                    for _ in value
+                ]
+            elif isinstance(value, dict):
+                prop = DynamicConfig(value, self.root)
+            else:
+                prop = value
+            setattr(self, key, prop)
+            # super().__setitem__(key, prop)  # for subclass dict, discard
+
+    @staticmethod
+    def is_lambda_function(var):
+        return (
+            callable(var)
+            and isinstance(var, type(lambda: None))
+            and var.__name__ == (lambda: None).__name__
+        )
+
+    def __getattribute__(self, name):
+        # intercept default attribute access of class and call the getter method explicitly
+        attr = object.__getattribute__(self, name)
+        if isinstance(attr, property):
+            return attr.fget(self)
+        return attr
+
+    @staticmethod
+    def from_file(cfg_file):
+        with open(cfg_file, "r") as f:
+            config_content = f.read()
+        anode = ast.parse(config_content)
+        segments = __class__.ast_recur(anode)
+        return DynamicConfig(segments)
+
+    @staticmethod
+    def ast_wrap(anode):
+        var_names = set()
+
+        class VariableVisitor(ast.NodeVisitor):
+            def visit_Name(self, node):
+                if isinstance(node.ctx, (ast.Load, ast.Store)):
+                    var_names.add(node.id)
+
+        VariableVisitor().visit(anode)
+        code_str = astor.to_source(anode).strip()
+        print(code_str)
+        code_str2 = code_str
+        for _ in var_names:
+            code_str2 = re.sub(rf"\b{_}\b", f"self.root.{_}", code_str2)
+        return code_str2
+
+    @staticmethod
+    def ast_eval_or_wrap(anode, apis):
+        try:
+            code_str = astor.to_source(anode)
+            value = eval(code_str, apis)
+        except:
+            code_str = __class__.ast_wrap(anode)
+            print(code_str)
+            value = lambda self: eval(code_str, apis, dict(self=self))
+        return value
+
+    @staticmethod
+    def ast_switch(anode, apis):
+        if isinstance(anode, (ast.Call, ast.List, ast.Tuple)):
+            return __class__.ast_recur(anode, apis)
+        elif isinstance(anode, ast.Dict):
+            raise "Must write in dict(k1=v1,..), rather than {k1:v1}!"
+        elif isinstance(anode, ast.Starred):
+            raise "Must write in [lst[0],..], rather than [*lst]!"
+        elif isinstance(anode, (ast.Lambda, ast.FunctionDef)):
+            raise "Lambda or FunctionDef not supported!"
+        else:
+            return __class__.ast_eval_or_wrap(anode, apis)
+
+    @staticmethod
+    def ast_recur(anode, apis=None):
+        segments = {}
+        apis = apis if apis else {}
+
+        if isinstance(anode, ast.Module):
+            nodes = list(anode.body)
+            for i, n in enumerate(nodes):
+                # print(astor.to_source(n))
+                if not isinstance(n, (ast.Import, ast.ImportFrom)):
+                    break
+                exec(astor.to_source(n), apis)
+            for node in nodes[i:]:
+                assert isinstance(node, ast.Assign)
+                assert len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
+                # print(astor.to_source(node))
+                value = __class__.ast_switch(node.value, apis)
+                segments[node.targets[0].id] = value
+            return segments
+
+        elif isinstance(anode, ast.Call):
+            clsdef = eval(astor.to_source(anode.func).strip(), apis)
+            assert (
+                callable(clsdef)
+                # and len(anode.args) == 0  # TODO XXX TODO XXX TODO XXX TODO XXX TODO XXX
+            )
+            kvp = dict()
+            if clsdef != dict and not issubclass(clsdef, dict):
+                kvp["clsdef"] = clsdef
+            for kwd in anode.keywords:
+                value2 = __class__.ast_switch(kwd.value, apis)
+                kvp[kwd.arg] = value2
+            return kvp
+
+        elif isinstance(anode, (ast.List, ast.Tuple)):
+            lst = []
+            for elem in anode.elts:
+                value3 = __class__.ast_switch(elem, apis)
+                lst.append(value3)
+            return lst
+
+        else:
+            raise "NotImplemented"
+
+
 def register_module(module, force=False):
     if not callable(module):
         raise TypeError(f"module must be Callable, but got {type(module)}")
@@ -102,7 +230,7 @@ def build_from_config(cfg):
         for k, v in cfg.items():
             cfg[k] = build_from_config(v)
         if cls_key is not None:
-            obj = MODULE_DICT[cls_key](**cfg)
+            obj = cls_key(**cfg)  # MODULE_DICT[cls_key](**cfg)
         else:
             obj = cfg
     # elif isinstance(cfg, DynamicConfig):
@@ -122,6 +250,22 @@ def build_from_config(cfg):
     else:
         obj = cfg
     return obj
+
+
+def pool_map(func, iterable, nproc=os.cpu_count()):
+    pool = Pool(min(nproc, os.cpu_count()))
+    result = pool.map(func, iterable)
+    pool.close()
+    pool.join()
+    return result
+
+
+def pool_starmap(func, iterable, nproc=os.cpu_count()):
+    pool = Pool(min(nproc, os.cpu_count()))
+    result = pool.starmap(func, iterable)
+    pool.close()
+    pool.join()
+    return result
 
 
 def unsqueeze_to(input, target):
@@ -146,6 +290,53 @@ def find_sect(sects, n):
         if r[0] <= n <= r[1]:
             return i
     raise "ValueError"
+
+
+'''class DictTool:  # TODO also support list  # XXX backup
+    """support nested ``dict``s."""
+
+    @staticmethod
+    def popattr(obj, key):
+        assert isinstance(obj, dict)
+
+        def resolve_attr(obj, key):
+            keys = key.split(".")
+            for name in keys:
+                obj = obj.pop(name)
+            return obj
+
+        return resolve_attr(obj, key)
+
+    @staticmethod
+    def getattr(obj, key):
+        assert isinstance(obj, dict)
+
+        def resolve_attr(obj, key):
+            keys = key.split(".")
+            for name in keys:
+                obj = obj.get(name)
+            return obj
+
+        return resolve_attr(obj, key)
+
+    @staticmethod
+    def setattr(obj, key, value):
+        assert isinstance(obj, dict)
+
+        def resolve_attr(obj, key):
+            keys = key.split(".")
+            head = keys[:-1]
+            tail = keys[-1]
+            for name in head:
+                if name in obj:
+                    obj = obj[name]
+                else:
+                    obj[name] = {}
+                    obj = obj[name]
+            return obj, tail
+
+        resolved_obj, resolved_attr = resolve_attr(obj, key)
+        resolved_obj[resolved_attr] = value'''
 
 
 class DictTool:
@@ -241,4 +432,35 @@ class Compose:
         return self.transforms[idx]
 
 
-register_module(Compose)
+class ComposeNoStar(Compose):
+
+    def __call__(self, kwds):
+        for t in self.transforms:
+            kwds = t(kwds)
+        return kwds
+
+
+def get_subclass_method_keys(obj, superclass):
+    return [
+        attr
+        for attr in dir(obj)
+        if callable(getattr(obj, attr)) and not hasattr(superclass, attr)
+    ]
+
+
+def add_hook_to_staticmethod(cls, method_name, hook):
+    old_method = getattr(cls, method_name)
+
+    # unwrap staticmethod into underlying function if needed
+    if isinstance(old_method, staticmethod):
+        old_func = old_method.__func__
+    else:
+        old_func = old_method
+
+    def wrapped(*args, **kwargs):
+        result = old_func(*args, **kwargs)
+        hook(result)  # run hook at the end
+        return result
+
+    # reassign as staticmethod
+    setattr(cls, method_name, staticmethod(wrapped))

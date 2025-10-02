@@ -81,7 +81,7 @@ Converted datasets, including ClevrTex, COCO, VOC and MOVi-D are available as [r
 
 ## Model Checkpoints & Training Logs 🌟
 
-***The checkpoints and training logs (@ random seeds 42, 43 and 44) for all the models in the two tables above*** are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases). All backbones are unified as DINO2-S/14.
+***The checkpoints and training logs (@ random seeds 42, 43 and 44) for all models*** are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases). All backbones are unified as DINO2-S/14.
 - [slatesteve](https://github.com/Genera1Z/VQ-VFM-OCL/releases/tag/slatesteve): SLATE on ClevrTex, COCO and VOC; STEVE on MOVi-D.
     - My implementation of paper **Illiterate DALL-E Learns to Compose**, ICLR 2022, achieving much better performance.
     - My implementation of paper **Simple Unsupervised Object-Centric Learning for Complex and Naturalistic Videos**, NeurIPS 2022, achieving much better performance.
@@ -112,7 +112,7 @@ Use package versions no older than the specification.
 
 #### (2) Prepare datasets
 
-Download converted datasets or convert original datasets into LMDB format: 
+Download **converted datasets** or convert original datasets into LMDB format: 
 ```shell
 python convert.py
 ```
@@ -159,16 +159,13 @@ Remember **firstly** modify the script according to your need.
 1. Any config file can be converted into typical Python code by changing from
 ```Python
 ...
-model = dict(type="class_name", key1=value1,..)
+model = dict(type=ClassName, key1=value1,..)
 ...
 ```
 to
 ```Python
-from object_centric_bench.datum import *
-from object_centric_bench.model import *
-from object_centric_bench.learn import *
 ...
-model = class_name(key1=value1,..)
+model = ClassName(key1=value1,..)
 ...
 ```
 

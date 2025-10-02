@@ -1,4 +1,3 @@
-from ..utils import register_module
 from .metric import (
     MetricWrap,
     CrossEntropyLoss,
@@ -20,7 +19,7 @@ from .optim import (
     group_params_by_keys,
 )
 from .callback import Callback
-from .callback_log import AverageLog, SaveModel, CollectLog
+from .callback_log import AverageLog, SaveModel
 from .callback_sched import (
     CbLinear,
     CbCosine,
@@ -29,5 +28,3 @@ from .callback_sched import (
     CbLinearCosine,
     CbSquarewave,
 )
-
-[register_module(_) for _ in locals().values() if isinstance(_, type)]
