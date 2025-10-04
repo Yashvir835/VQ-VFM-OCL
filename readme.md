@@ -6,8 +6,8 @@
 [![](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
 [![](https://img.shields.io/badge/python-3.11-yellow)](https://www.python.org)
 [![](https://img.shields.io/badge/pytorch-2.6-green)](https://pytorch.org)
-[![](https://img.shields.io/badge/model-checkpoints-blue)](https://github.com/Genera1Z/VQ-VFM-OCL?tab=readme-ov-file#model-checkpoints--training-logs-)
-[![](https://img.shields.io/badge/training-logs-purple)](https://github.com/Genera1Z/VQ-VFM-OCL?tab=readme-ov-file#model-checkpoints--training-logs-)
+[![](https://img.shields.io/badge/model-checkpoints-blue)](https://github.com/Genera1Z/VQ-VFM-OCL?tab=readme-ov-file#-model-checkpoints--training-logs)
+[![](https://img.shields.io/badge/training-logs-purple)](https://github.com/Genera1Z/VQ-VFM-OCL?tab=readme-ov-file#-model-checkpoints--training-logs)
 
 
 
