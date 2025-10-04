@@ -47,7 +47,7 @@ Qualitative  results.
 
 
 
-## 📂 Repo Stucture
+## 🧭 Repo Stucture
 
 Source code.
 ```shell
@@ -230,7 +230,7 @@ My further research works on OCL can be found in [my repos](https://github.com/G
 
 
 
-## 📖 Citation
+## 📚 Citation
 
 If you find this repo useful, please cite our work.
 ```
