@@ -15,7 +15,7 @@
 
 Official source code, model checkpoints and training logs for paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**".
 
-<img src="res/model_arch_unify.png" style="width:70%">
+<img src="res/model_arch_unify.png" style="width:65%">
 <img src="res/model_arch_compare.png" style="width:25%">
 
 Supported OCL methods include, categorized by OCL decoding:
