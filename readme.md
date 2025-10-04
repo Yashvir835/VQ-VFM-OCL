@@ -15,8 +15,7 @@
 
 Official source code, model checkpoints and training logs for paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**".
 
-<img src="res/model_arch_unify.png" style="width:65%">
-<img src="res/model_arch_compare.png" style="width:25%">
+<img src="res/model_arch_unify.png" style="width:65%"> <img src="res/model_arch_compare.png" style="width:25%">
 
 Supported OCL methods include, categorized by OCL decoding:
 - Auto-regressive decoding: [SLATE](https://github.com/singhgautam/slate) vs VVO-Tfd, [STEVE](https://github.com/singhgautam/steve) vs VVO-TfdT, [SPOT](https://github.com/gkakogeorgiou/spot) vs VVO-Tfd9
