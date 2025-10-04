@@ -2,9 +2,18 @@
 
 
 
-## Accepted to ACM MM 2025 as a Poster 🎉
+[![](https://img.shields.io/badge/arXiv-2502.20263-red)](https://arxiv.org/abs/2502.20263)
+[![](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
+[![](https://img.shields.io/badge/python-3.11-yellow)](https://www.python.org)
+[![](https://img.shields.io/badge/pytorch-2.6-green)](https://pytorch.org)
+[![](https://img.shields.io/badge/model-checkpoints-blue)](https://github.com/Genera1Z/VQ-VFM-OCL?tab=readme-ov-file#model-checkpoints--training-logs-)
+[![](https://img.shields.io/badge/training-logs-purple)](https://github.com/Genera1Z/VQ-VFM-OCL?tab=readme-ov-file#model-checkpoints--training-logs-)
 
-Official implementation of ACM MM 2025 paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**" available on [arXiv:2502.20263](https://arxiv.org/abs/2502.20263).
+
+
+## 🎉 Accepted to ACM MM 2025 as a Poster
+
+Official source code, model checkpoints and training logs for paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**".
 
 <img src="res/model_arch_unify.png" style="width:75%">
 
@@ -29,47 +38,57 @@ Qualitative  results.
 
 
 
-## Stucture
+## 🌟 Highlights
 
-```
-- config-slatesteve  # configs for SLATE and STEVE
-    └ *.py
-- config-dinosaur  # configs for DINOSAUR
-    └ *.py
-- config-slotdiffusion  # configs for SlotDiffusion
-    └ *.py
-- config-vqdino  # configs forr VQDINO (VVO with DINO for OCL encoding)
-    └ *.py
-- object_centric_bench
-    └ datum  # implementations of datasets ClevrTex, COCO, VOC and MOVi
-        └ *.py
-    └ model  # modules that compose OCL models
-        └ *.py
-    └ learn  # callbacks, metrics and optimizers
-        └ *.py
-    └ *.py
+- ✅ **fp16 fast training** [Automatic mixed precision](https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html) training (fp32+fp16) is enabled. Most of the training can be finished less than 4 or 8 hours (for image or video OCL respectively) using one V100 GPU.
+- ✅ **less I/O overhead** Datasets are stored in [LMBD](https://lmdb.readthedocs.io) database format to save I/O overhead, beneficial especially on computing cluster.
+
+- ✅ **config-driven experiment** This is totally config-driven framework, largely inspired by [OpenMMLab](https://github.com/open-mmlab), but with much less capsulation.
+
+- ✅ **strong baselines** All models requiring VAE are implemented with StableDiffusion pretrained VAE [TinyVAE](https://huggingface.co/docs/diffusers/v0.30.1/en/api/models/autoencoder_tiny); All models are trained with [strong](https://arxiv.org/abs/2206.07764) data augmentations; All models employ vision foundation model [DINO2](https://huggingface.co/docs/transformers/en/model_doc/dinov2) as their backbone.
+
+
+
+## 📂 Repo Stucture
+
+Source code.
+```shell
+- config-slatesteve/    # configs for SLATE and STEVE
+- config-dinosaur/      # configs for DINOSAUR
+- config-slotdiffusion/ # configs for SlotDiffusion
+- config-vqdino/        # configs for VQDINO
+- object_centric_bench/
+  - datum/              # dataset loading and preprocessing
+  - model/              # model building
+    - ...
+    - vaez.py           # *** for vector-quantization ***
+    - vqvfmocl.py       # *** for our VVO model building ***
+    - ...
+  - learn/              # metrics, optimizers and callbacks
 - convert.py
 - train.py
 - eval.py
 - requirements.txt
 ```
 
-## Core source code for paper VVO
-- ``object_centric_bench/model/vaez.py`` for Vector-Quantization;
-- ``object_centric_bench/model/vqvfmocl.py`` for VVO overall architecture.
+Release.
+```shell
+- dataset-clevrtex/     # dataset files in LMDB format
+- dataset-coco/
+- dataset-voc/
+- dataset-movi_d/
+- slatesteve/           # baseline model checkpoints and training logs
+- dinosaur/
+- slotdiffusion/
+- vqdino_tfd/           # our VQDINO-Tfd models and logs
+- vqdino_mlp/           # our VQDINO-Mlp models and logs
+- vqdino_dfz/           # our VQDINO-Dfz models and logs
+- r384/                 # models and logs trained at resolution 384x384
+```
 
 
 
-## Features
-
-- **fp16 fast training** [Automatic mixed precision](https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html) training (fp32+fp16) is enabled. Most of the training can be finished less than 4 or 8 hours (for image or video OCL respectively) using one V100 GPU.
-- **less I/O overhead** Datasets are stored in [LMBD](https://lmdb.readthedocs.io) database format to save I/O overhead, beneficial especially on computing cluster.
-- **config-driven experiment** This is totally config-driven framework, largely inspired by [OpenMMLab](https://github.com/open-mmlab), but with much less capsulation.
-- **strong baselines** All models requiring VAE are implemented with StableDiffusion pretrained VAE [TinyVAE](https://huggingface.co/docs/diffusers/v0.30.1/en/api/models/autoencoder_tiny); All models are trained with [strong](https://arxiv.org/abs/2206.07764) data augmentations; All models employ vision foundation model [DINO2](https://huggingface.co/docs/transformers/en/model_doc/dinov2) as their backbone.
-
-
-
-## Converted Datasets 🚀
+## 🚀 Converted Datasets
 
 Converted datasets, including ClevrTex, COCO, VOC and MOVi-D are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases).
 - [dataset-clevrtex](https://github.com/Genera1Z/VQ-VFM-OCL/releases/tag/dataset-clevrtex): converted dataset [ClevrTex](https://www.robots.ox.ac.uk/~vgg/data/clevrtex).
@@ -79,7 +98,7 @@ Converted datasets, including ClevrTex, COCO, VOC and MOVi-D are available as [r
 
 
 
-## Model Checkpoints & Training Logs 🌟
+## 🧠 Model Checkpoints & Training Logs
 
 ***The checkpoints and training logs (@ random seeds 42, 43 and 44) for all models*** are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases). All backbones are unified as DINO2-S/14.
 - [slatesteve](https://github.com/Genera1Z/VQ-VFM-OCL/releases/tag/slatesteve): SLATE on ClevrTex, COCO and VOC; STEVE on MOVi-D.
@@ -100,9 +119,10 @@ Converted datasets, including ClevrTex, COCO, VOC and MOVi-D are available as [r
 
 
 
-## How to Use
+## 🔥 How to Use
 
-#### (1) Install requirements
+
+### (1) Install requirements
 
 (Using Python version 3.11)
 ```shell
@@ -110,7 +130,8 @@ pip install -r requirements.txt
 ```
 Use package versions no older than the specification.
 
-#### (2) Prepare datasets
+
+### (2) Prepare datasets
 
 Download **converted datasets** or convert original datasets into LMDB format: 
 ```shell
@@ -118,7 +139,8 @@ python convert.py
 ```
 But **firstly** download original datasets according to docs of ```XxxDataset.convert_dataset()```.
 
-#### (3) Pretrain and train
+
+### (3) Pretrain and train
 
 Run training:
 ```shell
@@ -127,46 +149,57 @@ python train.py
 But **firstly** change the arguments marked with ```TODO XXX``` to your needs.
 
 Specifically on training:
-- For SLATE/STEVE, SlotDiffusion and VQDINO-Tfd/Mlp/Dfz, there are two stages for training. For example,
+- For **SLATE/STEVE, SlotDiffusion and VQDINO-Tfd/Mlp/Dfz**, there are two stages for training. For example,
 ```shell
 # 1. pretrain the VAE module
-python train.py --cfg_file config-slatesteve/vqvae-coco-c256.py
-# *. place the best VAE checkpoint at archive-slatesteve/vqvae-coco-c256/best.pth
+python train.py \
+    --seed 42 \
+    --cfg_file config-slatesteve/vqvae-coco-c256.py \
+    --data_dir path/to/coco
+
+# 2. place the best VAE checkpoint at archive-slatesteve/vqvae-coco-c256/best.pth
 mv save archive-slatesteve
-# 2. train the OCL model
-python train.py --cfg_file config-slatesteve/slate_r_vqvae-coco.py --ckpt_file archive-slatesteve/vqvae-coco-c256/best.pth
-```
- - VQDINO-Tfd/Mlp models share the same ``config-vqdino/vqdino-xxx-c256.py`` and corresponding checkpoint as VAE pretraining;
- - VQDINO-Dfz models take ``config-vqdino/vqdino-xxx-c4.py`` and corresponding checkpoint as VAE pretraining.
 
-- For DINOSAUR, there is only one training stage. For example,
+# 3. train the OCL model
+python train.py \
+    --seed 42 \
+    --cfg_file config-slatesteve/slate_r_vqvae-coco.py \
+    --data_dir path/to/coco \
+    --ckpt_file archive-slatesteve/vqvae-coco-c256/best.pth
+```
+
+- Please note that:
+  - VQDINO-Tfd/Mlp models share the same ``config-vqdino/vqdino-xxx-c256.py`` and corresponding checkpoint as VAE pretraining;
+  - VQDINO-Dfz models take ``config-vqdino/vqdino-xxx-c4.py`` and corresponding checkpoint as VAE pretraining.
+
+- For **DINOSAUR**, there is only one training stage. For example,
 ```shell
-python train.py --cfg-file config-dinosaur/dinosaur_r-coco.py
+python train.py \
+    --seed 42 \
+    --cfg-file config-dinosaur/dinosaur_r-coco.py \
+    --data_dir path/to/coco
 ```
 
-#### (4) Evaluate
+
+### (4) Evaluate
 
 Run evaluation:
 ```shell
 python eval.py
 ```
-Remember **firstly** modify the script according to your need.
+But **firstly** modify places marked with ``TODO XXX`` according to your needs.
 
 
 
-## Tips
+## 💡 Tips
 
 1. Any config file can be converted into typical Python code by changing from
 ```Python
-...
 model = dict(type=ClassName, key1=value1,..)
-...
 ```
 to
 ```Python
-...
 model = ClassName(key1=value1,..)
-...
 ```
 
 2. All config files follow a similar structure, and you can use file comparator [Meld](https://meldmerge.org) with VSCode plugin [Meld Diff](https://marketplace.visualstudio.com/items?itemName=danielroedl.meld-diff) to check their differences.
@@ -174,26 +207,32 @@ model = ClassName(key1=value1,..)
 
 
 
-## TODO
+## 📝 TODO
 
-- SPOT & VVO-Tfd9: To be integrated into this framework;
-- VideoSAUR & VVO-SmdT: To be integrated into this framework.
+- ⬜ SPOT & VVO-Tfd9: To be integrated into this framework;
+- ⬜ VideoSAUR & VVO-SmdT: To be integrated into this framework.
 
 
 
-## About Me 🤗
+## 🤗 Contact & Support
 
-I am now working on object-centric learning (OCL). If you have any cool ideas on OCL or issues about this repo, just contact me.
+I am now working on Object-Centric Learning (OCL). If you have any cool ideas or issues, do not hasitate to contact me!
 - WeChat: Genera1Z
 - GoogleScholar: [MqlwrKAAAAAJ](https://scholar.google.com/citations?hl=en&user=MqlwrKAAAAAJ&view_op=list_works&sortby=pubdate)
 - LinkedIn: [rongzhen-zhao-3b7215247](https://www.linkedin.com/in/rongzhen-zhao-3b7215247)
 - eMail: [rongzhen.zhao@aalto.fi](rongzhen.zhao@aalto.fi), [zhaorongzhenagi@gmail.com](zhaorongzhenagi@gmail.com)
 
-If you are **applying OCL (not limited to this repo) to tasks like visual question answering, visual prediction/reasoning, world modeling and reinforcement learning**, I am also willing to be of your help.
+If you are **applying OCL (not limited to this repo) to tasks like visual question answering, visual prediction/reasoning, world modeling and reinforcement learning**, let us collaborate!
 
 
 
-### Citation
+## ⚗️ Further Research
+
+My further research works on OCL can be found in [my repos](https://github.com/Genera1Z?tab=repositories).
+
+
+
+## 📖 Citation
 
 If you find this repo useful, please cite our work.
 ```
