@@ -56,7 +56,7 @@ Source code.
 - config-slatesteve/    # configs for SLATE and STEVE
 - config-dinosaur/      # configs for DINOSAUR
 - config-slotdiffusion/ # configs for SlotDiffusion
-- config-vqdino/        # configs for VQDINO
+- config-vqdino/        # *** configs for our VQDINO ***
 - object_centric_bench/
   - datum/              # dataset loading and preprocessing
   - model/              # model building
