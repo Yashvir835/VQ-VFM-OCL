@@ -222,7 +222,7 @@ I am now working on Object-Centric Learning (OCL). If you have any cool ideas or
 - WeChat: Genera1Z
 - GoogleScholar: [MqlwrKAAAAAJ](https://scholar.google.com/citations?hl=en&user=MqlwrKAAAAAJ&view_op=list_works&sortby=pubdate)
 - LinkedIn: [rongzhen-zhao-3b7215247](https://www.linkedin.com/in/rongzhen-zhao-3b7215247)
-- eMail: [rongzhen.zhao@aalto.fi](rongzhen.zhao@aalto.fi), [zhaorongzhenagi@gmail.com](zhaorongzhenagi@gmail.com)
+- eMail: rongzhen.zhao@aalto.fi, zhaorongzhenagi@gmail.com
 
 If you are **applying OCL (not limited to this repo) to tasks like visual question answering, visual prediction/reasoning, world modeling and reinforcement learning**, let us collaborate!
 
