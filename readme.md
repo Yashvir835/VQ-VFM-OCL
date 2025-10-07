@@ -49,7 +49,7 @@ Supported OCL methods include, categorized by OCL decoding:
 
 ## 🧭 Repo Stucture
 
-Source code.
+[Source code](https://github.com/Genera1Z/VQ-VFM-OCL).
 ```shell
 - config-slatesteve/    # configs for SLATE and STEVE
 - config-dinosaur/      # configs for DINOSAUR
@@ -69,7 +69,7 @@ Source code.
 - requirements.txt
 ```
 
-Release.
+[Releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases).
 ```shell
 - dataset-clevrtex/     # dataset files in LMDB format
 - dataset-coco/
