@@ -11,6 +11,10 @@
 
 
 
+Object-Centric Learning (OCL) aggregates image or video feature maps into object-level feature vectors, termed \textit{slots}. It's self-supervision of reconstructing the input from slots struggles with complex object textures, thus Vision Foundation Model (VFM) representations are used as the aggregation input and reconstruction target. Existing methods leverage VFM representations in diverse ways yet fail to fully exploit their potential. In response, we propose a unified architecture, Vector-Quantized VFMs for OCL (VQ-VFM-OCL, or VVO). The key to our unification is simply shared quantizing VFM representations in OCL aggregation and decoding. Experiments show that across different VFMs, aggregators and decoders, our VVO consistently outperforms baselines in object discovery and recognition, as well as downstream visual prediction and reasoning. We also mathematically analyze why VFM representations facilitate OCL aggregation and why their shared quantization as reconstruction targets strengthens OCL supervision.
+
+
+
 ## 🎉 Accepted to ACM MM 2025 as a Poster
 
 Official source code, model checkpoints and training logs for paper "**Vector-Quantized Vision Foundation Models for Object-Centric Learning**".
@@ -98,7 +102,7 @@ Converted datasets, including ClevrTex, COCO, VOC and MOVi-D are available as [r
 
 ## 🧠 Model Checkpoints & Training Logs
 
-***The checkpoints and training logs (@ random seeds 42, 43 and 44) for all models*** are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases). All backbones are unified as DINO2-S/14.
+**The checkpoints and training logs (@ random seeds 42, 43 and 44) for all models** are available as [releases](https://github.com/Genera1Z/VQ-VFM-OCL/releases). All backbones are unified as DINO2-S/14.
 - [slatesteve](https://github.com/Genera1Z/VQ-VFM-OCL/releases/tag/slatesteve): SLATE on ClevrTex, COCO and VOC; STEVE on MOVi-D.
     - My implementation of paper **Illiterate DALL-E Learns to Compose**, ICLR 2022, achieving much better performance.
     - My implementation of paper **Simple Unsupervised Object-Centric Learning for Complex and Naturalistic Videos**, NeurIPS 2022, achieving much better performance.
