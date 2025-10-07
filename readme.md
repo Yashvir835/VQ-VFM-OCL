@@ -22,15 +22,15 @@ Supported OCL methods include, categorized by OCL decoding:
 - Mixture-based decoding: [DINOSAUR](https://github.com/martius-lab/videosaur) vs VVO-Mlp, [VideSAUR](https://github.com/martius-lab/videosaur) vs VVO-SmdT
 - Diffusion-based decoding: [SlotDiffusion](https://github.com/Wuziyi616/SlotDiffusion) vs VVO-Dfz
 
-Object discovery performance with DINO2 ViT (s/14) for OCL encoding. VVO is instantiated as VQDINO; Tfd, TfdT, Mlp and Dfz are Transformer, Transformer-temporal, MLP and Diffusion for OCL decoding respectively.
+**Object discovery performance** with DINO2 ViT (s/14) for OCL encoding. VVO is instantiated as VQDINO; Tfd, TfdT, Mlp and Dfz are Transformer, Transformer-temporal, MLP and Diffusion for OCL decoding respectively.
 
 <img src="res/acc_vqdino_all.png" style="width:80%;">
 
-Using higher resolution.
+**Using higher resolution**.
 
 <img src="res/acc_vqdino_r384_coco.png" style="width:40%;">
 
-Qualitative  results.
+**Qualitative  results**.
 
 <img src="res/qualitative.png" style="width:100%;">
 
