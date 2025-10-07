@@ -14,9 +14,6 @@ from object_centric_bench.util import Config, build_from_config
 
 @pt.inference_mode()
 def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
-    cv2_resize_nearest = lambda i, x: cv2.resize(
-        i, None, fx=x, fy=x, interpolation=cv2.INTER_NEAREST_EXACT
-    )
     pack = Config({})
     pack.dataset_v = dataset_v
     pack.model = model
