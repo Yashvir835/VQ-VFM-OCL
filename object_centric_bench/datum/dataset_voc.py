@@ -30,7 +30,6 @@ class PascalVOC(ptud.Dataset):
             segment=sample["segment"].numpy(),
         )
     ```
-    ```
     """
 
     def __init__(
