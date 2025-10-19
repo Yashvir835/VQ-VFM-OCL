@@ -15,5 +15,5 @@ from .transform import (
     SliceTo1,
     RandomSliceTo1,
     StridedRandomSlice1,
-    SquarePad,
 )
+from .collate import PadToMax1, DefaultCollate

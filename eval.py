@@ -1,6 +1,8 @@
 from pathlib import Path
 
+from einops import rearrange
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import torch as pt
 
@@ -21,7 +23,7 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
     pack.callback_v = callback_v
     pack.epoch = 0
 
-    is_img = False  # TODO XXX
+    is_img = True  # TODO XXX
 
     mean = pt.from_numpy(np.array(cfg.IMAGENET_MEAN, "float32"))
     std = pt.from_numpy(np.array(cfg.IMAGENET_STD, "float32"))
@@ -65,9 +67,7 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
                         _[None] for _ in (img_gt, seg_gt, seg_pd)
                     ]
                 for tcnt, (igt, sgt, spd) in enumerate(zip(img_gt, seg_gt, seg_pd)):
-                    igt = cv2.cvtColor(
-                        igt.permute(1, 2, 0).cpu().numpy(), cv2.COLOR_RGB2BGR
-                    )
+                    igt = igt.permute(1, 2, 0).cpu().numpy()
                     sgt = sgt.cpu().numpy()
                     spd = spd.cpu().numpy()
                     save_path = save_dn / f"{cnt:06d}-{tcnt:06d}"
@@ -85,9 +85,19 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
     [_.after_epoch(**pack) for _ in pack.callback_v]
 
 
-def main(  # TODO XXX
-    cfg_file="config-vqdino/vqdino_mlp_r-coco-r384.py",
-    ckpt_file="/media/GeneralZ/Storage/Active/20250213/New Folder/r384/archive-vqdino-42/vqdino_mlp_r-coco-r384/best.pth",
+def main(
+    # cfg_file="config-smoothsa/smoothsa_r_recogn-coco.py",  # 6680
+    # ckpt_file="archive-recogn/smoothsa_r_recogn-coco/42/0002.pth",
+    # cfg_file="config-spot/spot_r_recogn-coco.py",  # 6570
+    # ckpt_file="archive-recogn/spot_r_recogn-coco/42/0002.pth",
+    # cfg_file="config-smoothsa/smoothsav_r_recogn-ytvis.py",  # 8836
+    # ckpt_file="archive-recogn/smoothsav_r_recogn-ytvis/42/0011.pth",
+    # cfg_file="config-slotcontrast/slotcontrast_r_recogn-ytvis.py",  # 9151
+    # ckpt_file="archive-recogn/slotcontrast_r_recogn-ytvis/42/0010.pth",
+    # cfg_file="config-smoothsa/smoothsav_r-ytvis.py",
+    # ckpt_file="../_20250620-dias0_randsfq_smoothsa-ckpt/20250620-dias0_randsfq_smoothsa-smoothsav-vvv/save/smoothsav_r-ytvis/42-0159.pth",
+    cfg_file="config-slotcontrast/slotcontrast_r-ytvis.py",
+    ckpt_file="../_20250620-dias0_randsfq_smoothsa-ckpt/20250620-dias0_randsfq_smoothsa-slotcontrast_ce/save/slotcontrast_r-ytvis/42-0155.pth",
 ):
     data_dir = "/media/GeneralZ/Storage/Static/datasets"  # TODO XXX
     pt.backends.cudnn.benchmark = True
@@ -112,6 +122,7 @@ def main(  # TODO XXX
         cfg.batch_size_v // 2,  # TODO XXX
         shuffle=False,
         num_workers=cfg.num_work,
+        collate_fn=build_from_config(cfg.collate_fn_v),
         pin_memory=True,
     )
 
@@ -136,7 +147,7 @@ def main(  # TODO XXX
 
     cfg.callback_v = [_ for _ in cfg.callback_v if _.type.__name__ != "SaveModel"]
     for cb in cfg.callback_v:
-        if cb.type.__name__ == "AverageLog":
+        if cb.type.__name__ in ["AverageLog", "HandleLog"]:
             cb.log_file = None  # TODO XXX change to current log file for eval
     callback_v = build_from_config(cfg.callback_v)
 

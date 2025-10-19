@@ -8,9 +8,9 @@ from object_centric_bench.datum import (
     RandomFlip,
     Normalize,
     CenterCrop,
-    PadTo1,
     Lambda,
     MOVi,
+    PadToMax1,
 )
 from object_centric_bench.learn import (
     Adam,
@@ -70,44 +70,36 @@ IMAGENET_MEAN = [[[123.675]], [[116.28]], [[103.53]]]
 IMAGENET_STD = [[[58.395]], [[57.12]], [[57.375]]]
 transform_t = [
     # (t=24,c,h,w) (t,n,c=4) (t,h,w)
-    dict(type=StridedRandomSlice1, keys=["video", "bbox", "segment"], dim=0, size=6),
+    dict(type=StridedRandomSlice1, keys=["video", "segment"], dim=0, size=6),
     # the following 2 == RandomResizedCrop: better than max sized random crop
-    dict(
-        type=RandomCrop,
-        keys=["video", "segment"],
-        size=None,
-        scale=[0.75, 1],
-        bbox_key="bbox",
-    ),
+    dict(type=RandomCrop, keys=["video", "segment"], size=None, scale=[0.75, 1]),
     dict(type=Resize, keys=["video"], size=resolut0, interp="bilinear"),
     dict(type=Resize, keys=["segment"], size=resolut0, interp="nearest-exact", c=0),
-    dict(type=RandomFlip, keys=["video", "segment"], dims=[-1], bbox_key="bbox", p=0.5),
+    dict(type=RandomFlip, keys=["video", "segment"], dims=[-1], p=0.5),
     dict(type=Normalize, keys=["video"], mean=[IMAGENET_MEAN], std=[IMAGENET_STD]),
-    dict(type=PadTo1, keys=["bbox"], dim=1, size=max_num, value=0),
 ]
 transform_v = [
-    dict(type=CenterCrop, keys=["video", "segment"], size=None, bbox_key="bbox"),
+    dict(type=CenterCrop, keys=["video", "segment"], size=None),
     dict(type=Resize, keys=["video"], size=resolut0, interp="bilinear"),
     dict(type=Resize, keys=["segment"], size=resolut0, interp="nearest-exact", c=0),
     dict(type=Normalize, keys=["video"], mean=[IMAGENET_MEAN], std=[IMAGENET_STD]),
-    dict(type=PadTo1, keys=["bbox"], dim=1, size=max_num, value=0),
 ]
 dataset_t = dict(
     type=MOVi,
     data_file="movi_d/train.lmdb",
-    extra_keys=["bbox", "segment"],
+    extra_keys=["segment", "bbox"],
     transform=dict(type=Compose, transforms=transform_t),
     base_dir=...,
 )
 dataset_v = dict(
     type=MOVi,
     data_file="movi_d/val.lmdb",
-    extra_keys=["bbox", "segment"],
+    extra_keys=["segment", "bbox"],
     transform=dict(type=Compose, transforms=transform_v),
     base_dir=...,
 )
-collate_fn_t = None
-collate_fn_v = None
+collate_fn_t = dict(type=PadToMax1, keys=["segment", "bbox"], dims=[3, 1])
+collate_fn_v = collate_fn_t
 
 ### model
 
@@ -225,7 +217,7 @@ _acc_dict_ = dict(
     transform=dict(
         type=Lambda,
         ikeys=[["input", "target"]],
-        func=lambda _: rearrange(_, "b t h w c -> b (t h w) c"),
+        func=lambda _: rearrange(_, "b t h w s -> b (t h w) s"),
     ),
 )
 acc_fn_t = dict(
@@ -257,14 +249,11 @@ before_step = [
 after_forward = [
     dict(
         type=Lambda,
-        ikeys=[["output.attent"]],  # (b,t,s,h,w) -> (b,t,h,w)
-        func=lambda _: interpolat_argmax_attent(_.detach(), size=resolut0),
+        ikeys=[["output.attent"]],  # (b,t,s,h,w) -> (b,t,h,w,s)
+        func=lambda _: ptnf.one_hot(
+            interpolat_argmax_attent(_.detach(), size=resolut0).long()
+        ).bool(),
         okeys=[["output.segment"]],
-    ),
-    dict(
-        type=Lambda,  # (b,t,h,w) -> (b,t,h,w,s)
-        ikeys=[["output.segment", "batch.segment"]],
-        func=lambda _: ptnf.one_hot(_.long()),
     ),
 ]
 callback_t = [

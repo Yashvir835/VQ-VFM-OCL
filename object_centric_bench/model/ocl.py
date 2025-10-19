@@ -1,7 +1,3 @@
-import math
-
-from scipy.optimize import linear_sum_assignment
-import numpy as np
 import torch as pt
 import torch.nn as nn
 import torch.nn.functional as ptnf

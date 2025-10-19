@@ -9,6 +9,7 @@ from object_centric_bench.datum import (
     CenterCrop,
     Lambda,
     MSCOCO,
+    PadToMax1,
 )
 from object_centric_bench.learn import (
     Adam,
@@ -94,8 +95,8 @@ dataset_v = dict(
     transform=dict(type=Compose, transforms=transform_v),
     base_dir=...,
 )
-collate_fn_t = None
-collate_fn_v = None
+collate_fn_t = dict(type=PadToMax1, keys=["segment"], dims=[2])
+collate_fn_v = collate_fn_t
 
 ### model
 
@@ -197,7 +198,7 @@ _acc_dict_ = dict(
     transform=dict(
         type=Lambda,
         ikeys=[["input", "target"]],
-        func=lambda _: rearrange(_, "b h w c -> b (h w) c"),
+        func=lambda _: rearrange(_, "b h w s -> b (h w) s"),
     ),
 )
 acc_fn_t = dict(
@@ -227,14 +228,11 @@ before_step = [
 after_forward = [
     dict(
         type=Lambda,
-        ikeys=[["output.attent"]],  # (b,s,h,w) -> (b,h,w)
-        func=lambda _: interpolat_argmax_attent(_.detach(), size=resolut0),
+        ikeys=[["output.attent"]],  # (b,s,h,w) -> (b,h,w,s)
+        func=lambda _: ptnf.one_hot(
+            interpolat_argmax_attent(_.detach(), size=resolut0).long()
+        ).bool(),
         okeys=[["output.segment"]],
-    ),
-    dict(
-        type=Lambda,  # (b,h,w) -> (b,h,w,s)
-        ikeys=[["output.segment", "batch.segment"]],
-        func=lambda _: ptnf.one_hot(_.long()),
     ),
 ]
 callback_t = [

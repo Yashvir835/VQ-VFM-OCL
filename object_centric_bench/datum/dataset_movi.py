@@ -2,38 +2,47 @@ from pathlib import Path
 import pickle as pkl
 import time
 
+from einops import rearrange
 import cv2
 import lmdb
 import numpy as np
 import torch as pt
+import torch.nn.functional as ptnf
 import torch.utils.data as ptud
 
-from ..util_datum import draw_segmentation_np, VideoCodec
+from ..util_datum import draw_segmentation_np, VideoCodec, mask_segment_to_bbox_np
 
 
 class MOVi(ptud.Dataset):
     """Multi-Object Video (MOVi) datasets.
-    https://github.com/google-research/kubric/tree/main/challenges/movi
-    https://console.cloud.google.com/storage/browser/kubric-public/tfds
-
-    Wrap the LMDB file reading into PyTorch Dataset object,
-    which is much faster than the original TFRecord version.
-    As compressed 10x, the dataset can be put in RAM disk /dev/shm/ for extra speed.
-
-    MOVi-A | Number of objects in a scene distribution:
-    - train: {3: 1170, 4: 1239, 5: 1185, 6: 1242, 7: 1253, 8: 1249, 9: 1177, 10: 1188} by ``bbox.size(1)``
-        {3: 1170, 4: 1239, 5: 1185, 6: 1242, 7: 1255, 8: 1247, 9: 1177, 10: 1188} by ``segment.max()``
-    - val: {3: 23, 4: 40, 5: 26, 6: 35, 7: 31, 8: 33, 9: 27, 10: 35} by ``bbox.size(1)``
-        the same by ``segment.max()``
+    - https://github.com/google-research/kubric/tree/main/challenges/movi
+    - https://console.cloud.google.com/storage/browser/kubric-public/tfds
 
     Frame size in a scene:
     - timestep=24, height=256, width=256, channel=3.
+
+    Example
+    ```
+    dataset = MOVi(
+        data_file="movi_d/train.lmdb",
+        extra_keys=["segment", "bbox", "flow", "depth"],
+        base_dir=Path("/media/GeneralZ/Storage/Static/datasets"),
+    )
+    for sample in dataset:
+        dataset.visualiz(
+            video=sample["video"].permute(0, 2, 3, 1).numpy(),
+            segment=sample["segment"].numpy(),
+            bbox=sample["bbox"].numpy(),
+            flow=sample["flow"].permute(0, 2, 3, 1).numpy(),
+            depth=sample["depth"].permute(0, 2, 3, 1).numpy(),
+        )
+    ```
     """
 
     def __init__(
         self,
         data_file,
-        extra_keys=["bbox", "segment", "flow", "depth"],
+        extra_keys=["segment", "bbox", "flow", "depth"],
         transform=lambda **_: _,
         max_spare=4,
         base_dir: Path = None,
@@ -54,64 +63,66 @@ class MOVi(ptud.Dataset):
         self.extra_keys = extra_keys
         self.transform = transform
 
-    def __getitem__(self, index, compact=True):
+    def __getitem__(self, index):
         """
-        - video: shape=(t=24,c=3,h,w), uint8
-        - bbox: shape=(t,n,c=4), float32, both side normalized, only foreground
-        - segment: shape=(t,h,w), uint8
-        - flow: shape=(t,c=3,h,w), uint8
-        - depth: shape=(t,c=1,h,w), float32
+        - video: (t=24,c=3,h,w), uint8 | float32
+        - segment: (t,h,w,s), uint8 -> bool
+        - bbox: (t,s,c=4), float32. both side normalized ltrb, only foreground
+        - flow: (t,c=3,h,w), uint8 -> float32
+        - depth: (t,c=1,h,w), float32
         """
         with self.env.begin(write=False) as txn:
             sample0 = pkl.loads(txn.get(self.idxs[index]))
         sample1 = {}
 
-        # with open("video", "wb") as f:
-        #     pkl.dump(sample0["video"], f)
         video0 = VideoCodec.decode_3uint8(sample0["video"])  # rgb
         video = pt.from_numpy(video0).permute(0, 3, 1, 2)
-        sample1["video"] = video
-
-        if "bbox" in self.extra_keys:
-            bbox0 = sample0["bbox"]
-            bbox = pt.from_numpy(bbox0)
-            sample1["bbox"] = bbox  # ltrb
+        sample1["video"] = video  # (t,c,h,w) uint8
 
         if "segment" in self.extra_keys:
-            # with open("segment", "wb") as f:
-            #     pkl.dump(sample0["segment"], f)
             segment0 = VideoCodec.decode_1uint8(sample0["segment"])[..., 0]
             segment = pt.from_numpy(segment0)
-            sample1["segment"] = segment
+            sample1["segment"] = segment  # (t,h,w) uint8
 
         if "flow" in self.extra_keys:
-            # with open("flow", "wb") as f:
-            #     pkl.dump(sample0["flow"], f)
             flowd = sample0["flow"]
             flowd["data"] = VideoCodec.decode_xuint16(flowd["data"])
             flow0 = __class__.unpack_uint16_to_float32(**flowd)
             flow0 = __class__.flow_to_rgb(flow0)
             flow = pt.from_numpy(flow0).permute(0, 3, 1, 2)
-            sample1["flow"] = flow
+            sample1["flow"] = flow  # (t,c=3,h,w) uint8
 
         if "depth" in self.extra_keys:
-            # with open("depth", "wb") as f:
-            #     pkl.dump(sample0["depth"], f)
             depthd = sample0["depth"]
             depthd["data"] = VideoCodec.decode_1uint16(depthd["data"])[..., 0]
             depth0 = __class__.unpack_uint16_to_float32(**depthd)
             depth = pt.from_numpy(depth0)[:, None, :, :]
-            sample1["depth"] = depth
+            sample1["depth"] = depth  # (t,h,w) float32
 
         sample2 = self.transform(**sample1)
 
         if "segment" in self.extra_keys:
-            if compact:
-                segment = sample2["segment"]
-                segment = (
-                    segment.unique(return_inverse=True)[1].reshape(segment.shape).byte()
-                )
-                sample2["segment"] = segment
+            segment2 = sample2["segment"]  # (t,h,w); index format
+            # (t,h,w,s); mask format
+            segment3 = ptnf.one_hot(segment2.long()).bool()
+
+            t, h, w, s = segment3.shape
+
+            # ``RandomCrop`` and ``CenterCrop`` can diminish segments
+            cond = segment3.any([0, 1, 2])  # (s,)
+
+            segment3 = segment3[:, :, :, cond]
+            sample2["segment"] = segment3  # (t,h,w,s) bool
+
+            if "bbox" in self.extra_keys:  # TODO XXX [:, :, :, 1:]
+                segment3_ = rearrange(segment3[:, :, :, 1:], "t h w s -> h w (t s)")
+                bbox2_ = pt.from_numpy(  # (t*s,c=4)
+                    mask_segment_to_bbox_np(segment3_.numpy())
+                ).float()
+                bbox2 = rearrange(bbox2_, "(t s) c -> t s c", t=t)
+                bbox2[:, 0::2] /= w  # normalize
+                bbox2[:, 1::2] /= h
+                sample2["bbox"] = bbox2  # (t,s,c=4) float32
 
         return sample2
 
@@ -202,28 +213,28 @@ class MOVi(ptud.Dataset):
                 sample2 = __class__.bbox_sparse_to_dense(sample2)
 
                 video = sample2["video"]  # (t,h,w,c) uint8
+                segment = sample2["segment"]  # (t,h,w) uint8
                 bbox = sample2["bbox"]  # (t,n,c=4) float32, both side normalized
                 bbox = bbox[:, :, [1, 0, 3, 2]]
-                segment = sample2["segment"]  # (t,h,w) uint8
                 flow = sample2["flow"]  # (t,h,w,c=3) uint8 dict
                 depth = sample2["depth"]  # (t,h,w) uint32 dict
 
                 # flow0 = __class__.unpack_uint16_to_float32(**flow)
                 # flow0 = __class__.flow_to_rgb(flow0)
                 # depth0 = __class__.unpack_uint16_to_float32(**depth)[:, :, :, None]
-                # __class__.visualiz(video, bbox, segment, flow0, depth0, wait=0)
+                # __class__.visualiz(video, segment, bbox, flow0, depth0, wait=0)
 
                 sample_key = f"{i:06d}".encode("ascii")
                 keys.append(sample_key)
 
                 assert video.shape == (24, 256, 256, 3) and video.dtype == np.uint8
+                assert segment.shape == (24, 256, 256) and segment.dtype == np.uint8
                 assert (
                     bbox.ndim == 3
                     and bbox.shape[0] == 24
                     and bbox.shape[2] == 4
                     and bbox.dtype == np.float32
                 )
-                assert segment.shape == (24, 256, 256) and segment.dtype == np.uint8
                 assert (
                     flow["data"].shape == (24, 256, 256, 2)
                     and flow["data"].dtype == np.uint16
@@ -235,10 +246,10 @@ class MOVi(ptud.Dataset):
 
                 sample_dict = dict(  # lossless video encoding always has some losses
                     video=VideoCodec.encode_3uint8(video, __class__.FPS),
-                    bbox=bbox,
                     segment=VideoCodec.encode_1uint8(
                         segment[:, :, :, None], __class__.FPS
                     ),
+                    bbox=bbox,
                     flow=dict(
                         data=VideoCodec.encode_xuint16(flow["data"], __class__.FPS),
                         min=flow["min"],
@@ -300,8 +311,8 @@ class MOVi(ptud.Dataset):
 
         return dict(
             video=video,  # uint8 (24,256,256,3)
-            bbox=dict(track=track, bbox=bbox),  # float32
             segment=segment,  # uint8 (24,256,256)
+            bbox=dict(track=track, bbox=bbox),  # float32
             flow=dict(  # uint16 (24,256,256,2)
                 data=flow, min=flow_range[0], max=flow_range[1]
             ),
@@ -367,15 +378,18 @@ class MOVi(ptud.Dataset):
         return rgb
 
     @staticmethod
-    def visualiz(video, bbox=None, segment=None, flow=None, depth=None, wait=0):
+    def visualiz(video, segment=None, bbox=None, flow=None, depth=None, wait=0):
         """
         - video: bgr format, shape=(t,h,w,c=3), uint8
-        - bbox: both side normalized ltrb, shape=(n,c=4), float32
-        - segment: index format, shape=(t,h,w), uint8
+        - segment: index format, shape=(t,h,w,s), bool
+        - bbox: both side normalized ltrb, shape=(t,s,c=4), float32
         - flow: bgr or rgb (whichever), shape=(t,h,w,c=3), uint8
         - depth: shape=(t,h,w,c=1), float32
         """
         assert video.ndim == 4 and video.shape[3] == 3 and video.dtype == np.uint8
+
+        if segment is not None:
+            assert segment.ndim == 4 and segment.dtype == np.bool
 
         if bbox is not None and bbox.shape[0]:
             assert bbox.ndim == 3 and bbox.shape[2] == 4 and bbox.dtype == np.float32
@@ -383,9 +397,6 @@ class MOVi(ptud.Dataset):
             bbox[:, :, 0::2] *= w
             bbox[:, :, 1::2] *= h
             bbox = bbox.astype("int")
-
-        if segment is not None:
-            assert segment.ndim == 3 and segment.dtype == np.uint8
 
         if flow is not None:
             assert flow.ndim == 4 and flow.shape[3] == 3 and flow.dtype == np.uint8
@@ -405,16 +416,16 @@ class MOVi(ptud.Dataset):
                 for b in bbox[t]:
                     cv2.rectangle(img, b[:2], b[2:], color=c1)
 
-            cv2.imshow("v", img)
+            cv2.imshow("v", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
             imgs.append(img)
 
             if segment is not None:
                 seg = draw_segmentation_np(img, segment[t], alpha=0.75)
-                cv2.imshow("s", seg)
+                cv2.imshow("s", cv2.cvtColor(seg, cv2.COLOR_RGB2BGR))
                 segs.append(seg)
 
             if flow is not None:
-                cv2.imshow("f", flow[t])
+                cv2.imshow("f", cv2.cvtColor(flow[t], cv2.COLOR_RGB2BGR))
 
             if depth is not None:
                 cv2.imshow("d", depth[t])

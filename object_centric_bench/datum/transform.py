@@ -301,6 +301,7 @@ class Resize:
         - max_size: int; resize along the long side
         - c: 1 means tensor shape=(..,c,h,w); 0 means tensor=(..,h,w)
         """
+        assert "flow" not in keys  # TODO XXX not support optical flow resize
         self.keys = keys
         self.interp = INTERPOLATS[interp]
         self.resize = ptvt2.Resize(
