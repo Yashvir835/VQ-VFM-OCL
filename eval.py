@@ -25,19 +25,6 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
 
     is_img = True  # TODO XXX
     pack2 = Config({})
-    # pack2.slotz = []
-    """pack2.query = []  # TODO XXX
-    if hasattr(pack2, "query"):
-        def hook_fn(module, input, output):
-            q_container.append(output.detach().clone())
-        q_container = []
-        hook_handle = model.m.initializ.register_forward_hook(hook_fn)
-        hook_handle = model.m.transit.register_forward_hook(hook_fn)"""
-    # ### <<<- experiment
-    # global ts, te
-    # pack.model.m.transit.ts_ = ts
-    # pack.model.m.transit.te_ = te
-    # ### ->>>
 
     mean = pt.from_numpy(np.array(cfg.IMAGENET_MEAN, "float32"))
     std = pt.from_numpy(np.array(cfg.IMAGENET_STD, "float32"))
@@ -60,17 +47,8 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
             pack.loss = pack.loss_fn(**pack)
         pack.acc = pack.acc_fn_v(**pack)
 
-        """if hasattr(pack2, "query"):
-            pack2.query.append(pt.stack(q_container, 1).half().cpu().numpy())
-            q_container.clear()"""
         if hasattr(pack2, "slotz"):
             pack2.slotz.append(pack.output["slotz"].half().cpu().numpy())
-
-        if 0:  # TODO XXX
-            for image, segment in zip(pack.batch["image"], pack.output["segment2"]):
-                pack.dataset_v.dataset.visualiz(
-                    image, segment=segment, inorm=[mean, std], wait=0
-                )
 
         if 0:  # TODO XXX
             # makdir
@@ -215,7 +193,7 @@ def main_eval_multi():
 
     with open("eval_cfg.txt") as f:
         cfg_files0 = f.readlines()
-    with open("eval_pth.txt") as f:
+    with open("eval_ckpt.txt") as f:
         ckpt_files0 = f.readlines()
 
     cfg_files = []
