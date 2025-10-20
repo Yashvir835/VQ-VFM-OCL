@@ -53,7 +53,7 @@ Supported OCL methods include, categorized by OCL decoding:
 
 ## Changelogs
 
-- [2025/10/19] Version3: re-implement segmentation evaluation; corresponding new dataset lmdb files will be uploaded by today. Thus, object discovery acc could change a little, especially ARI values.
+- [2025/10/19] Version3: re-implement segmentation evaluation; corresponding new dataset lmdb files are uploaded. Thus, object discovery acc could change a little, especially ARI values.
 
 
 
