@@ -26,6 +26,45 @@ Supported OCL methods include, categorized by OCL decoding:
 - Mixture-based decoding: [DINOSAUR](https://github.com/martius-lab/videosaur) vs VVO-Mlp, [VideSAUR](https://github.com/martius-lab/videosaur) vs VVO-SmdT
 - Diffusion-based decoding: [SlotDiffusion](https://github.com/Wuziyi616/SlotDiffusion) vs VVO-Dfz
 
+
+
+## 🏆 Performance
+
+
+### ⭐⭐⭐ Updated Performance Values @ Version 3 ⭐⭐⭐
+
+|                                 |    ari    |   arifg  |    mbo   |   miou   |
+|---------------------------------|:---------:|:--------:|:--------:|:--------:|
+| slate_r_vqvae-clevrtex          |  17.4±2.9 | 87.4±1.7 | 44.5±2.2 | 43.3±2.4 |
+| slate_r_vqvae-coco              |  20.5±0.6 | 28.8±0.3 | 27.4±0.3 | 26.1±0.3 |
+| slate_r_vqvae-voc               |  22.4±0.2 | 26.3±0.8 | 37.8±0.4 | 36.6±0.3 |
+| steve_c_vqvae-movi_d            |  32.7±0.2 | 66.5±0.2 | 23.0±0.3 | 21.2±0.3 |
+| vqdino_tfd_r-clevrtex           | 55.4±18.2 | 85.9±0.7 | 54.4±2.4 | 53.6±2.5 |
+| vqdino_tfd_r-coco               |  24.4±2.0 | 31.5±1.1 | 30.2±0.6 | 28.8±0.8 |
+| vqdino_tfd_r-voc                |  26.9±0.9 | 26.9±1.4 | 40.5±0.3 | 39.5±0.4 |
+| vqdino_tfdt_c-movi_d            |  36.7±0.4 | 72.5±3.7 | 26.1±1.2 | 24.6±1.3 |
+| dinosaur_r-clevrtex             | 49.6±23.8 | 89.4±0.3 | 52.1±5.4 | 51.7±5.5 |
+| dinosaur_r-coco                 |  21.1±1.0 | 37.0±1.2 | 28.7±0.5 | 27.3±0.5 |
+| dinosaur_r-voc                  |  25.7±0.6 | 36.3±1.4 | 41.2±0.6 | 40.2±0.6 |
+| vqdino_mlp_r-clevrtex           |  64.8±0.3 | 88.8±0.6 | 56.1±0.4 | 55.7±0.5 |
+| vqdino_mlp_r-coco               |  22.1±0.4 | 36.0±0.6 | 29.1±0.3 | 27.8±0.3 |
+| vqdino_mlp_r-voc                |  25.9±0.9 | 35.6±0.9 | 41.5±0.2 | 40.6±0.2 |
+| slotdiffusion_r_vqvae-clevrtex  |  66.1±1.3 | 82.7±1.6 | 54.3±0.5 | 53.4±0.8 |
+| slotdiffusion_r_vqvae-coco      |  20.6±0.6 | 29.0±0.1 | 27.5±0.4 | 26.1±0.4 |
+| slotdiffusion_r_vqvae-voc       |  20.3±1.4 | 21.6±1.9 | 35.6±1.0 | 34.4±1.1 |
+| vqdino_dfz_r-clevrtex           |  72.2±0.2 | 81.9±2.0 | 57.6±0.7 | 56.8±0.8 |
+| vqdino_dfz_r-coco               |  21.2±0.3 | 28.7±1.0 | 27.7±0.1 | 26.4±0.1 |
+| vqdino_dfz_r-voc                |  22.6±0.5 | 24.4±0.3 | 37.3±0.1 | 36.3±0.2 |
+| slate_r_vqvae-coco-r384         |  43.4±1.0 | 34.1±0.3 | 28.1±0.4 | 26.6±0.4 |
+| vqdino_tfd_r-coco-r384          |  46.2±0.8 | 37.5±1.1 | 30.3±0.4 | 28.7±0.5 |
+| dinosaur_r-coco-r384            |  46.8±0.1 | 42.3±0.6 | 30.4±0.1 | 29.0±0.1 |
+| vqdino_mlp_r-coco-r384          |  46.5±0.7 | 42.6±0.5 | 30.3±0.2 | 29.0±0.2 |
+| slotdiffusion_r_vqvae-coco-r384 |  43.4±0.5 | 34.5±0.4 | 28.3±0.2 | 26.8±0.2 |
+| vqdino_dfz_r-coco-r384          |  45.3±1.2 | 34.3±0.4 | 29.0±0.7 | 27.5±0.7 |
+
+
+### Old Performance Results
+
 **Object discovery performance** with DINO2 ViT (s/14) for OCL encoding. VVO is instantiated as VQDINO; Tfd, TfdT, Mlp and Dfz are Transformer, Transformer-temporal, MLP and Diffusion for OCL decoding respectively.
 
 <img src="res/acc_vqdino_all.png" style="width:80%;">
