@@ -31,7 +31,7 @@ Supported OCL methods include, categorized by OCL decoding:
 ## 🏆 Performance
 
 
-### (1) ⭐⭐⭐ Updated Performance Values @ Version 3 ⭐⭐⭐
+### (1) ⭐⭐⭐ Re-evaluated Performance Values @ Version 3 ⭐⭐⭐
 
 |                                 |    ari    |   arifg  |    mbo   |   miou   |
 |---------------------------------|:---------:|:--------:|:--------:|:--------:|
