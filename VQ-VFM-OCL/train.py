@@ -163,8 +163,6 @@ def main(args):
 
     if ckpt_file:
         if isinstance(ckpt_file, (list, tuple)):
-            if len(ckpt_file) == 1:
-                cfg.ckpt_map = [cfg.ckpt_map]
             assert len(ckpt_file) == len(cfg.ckpt_map)
             [model.load(_, __) for _, __ in zip(ckpt_file, cfg.ckpt_map)]
         else:
