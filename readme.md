@@ -31,7 +31,7 @@ Supported OCL methods include, categorized by OCL decoding:
 ## 🏆 Performance
 
 
-### ⭐⭐⭐ Updated Performance Values @ Version 3 ⭐⭐⭐
+### (1) ⭐⭐⭐ Updated Performance Values @ Version 3 ⭐⭐⭐
 
 |                                 |    ari    |   arifg  |    mbo   |   miou   |
 |---------------------------------|:---------:|:--------:|:--------:|:--------:|
@@ -63,7 +63,7 @@ Supported OCL methods include, categorized by OCL decoding:
 | vqdino_dfz_r-coco-r384          |  45.3±1.2 | 34.3±0.4 | 29.0±0.7 | 27.5±0.7 |
 
 
-### Old Performance Results
+### (2) Old Performance Results
 
 **Object discovery performance** with DINO2 ViT (s/14) for OCL encoding. VVO is instantiated as VQDINO; Tfd, TfdT, Mlp and Dfz are Transformer, Transformer-temporal, MLP and Diffusion for OCL decoding respectively.
 
