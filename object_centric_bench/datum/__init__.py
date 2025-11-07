@@ -16,4 +16,4 @@ from .transform import (
     RandomSliceTo1,
     StridedRandomSlice1,
 )
-from .collate import PadToMax1, DefaultCollate
+from .collate import ClPadToMax1, ClPadTo1, DefaultCollate
