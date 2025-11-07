@@ -92,6 +92,7 @@ Supported OCL methods include, categorized by OCL decoding:
 
 ## 🚑️ Changelogs
 
+- [20251107] Fix ``lmdb`` multiprocessing issues due to ``torch=3.7+``.
 - ⭐⭐⭐ [2025/10/20] ⭐⭐⭐ **Object discovery accuracy values are updated for version 3. Check this table file [acc-v3.xlsx](acc-v3.xlsx) for details**.
 - [2025/10/19] Version 3: re-implement segmentation evaluation; corresponding new dataset lmdb files are uploaded. Thus, object discovery acc could change a little, especially ARI values.
 
