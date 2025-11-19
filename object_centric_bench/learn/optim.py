@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2024 Genera1Z
+https://github.com/Genera1Z
+"""
 import re
 
 import torch.amp.grad_scaler as ptags
