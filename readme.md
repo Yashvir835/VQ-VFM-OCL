@@ -182,11 +182,7 @@ Use package versions no older than the specification.
 
 ### (2) Prepare datasets
 
-Download **converted datasets** or convert original datasets into LMDB format: 
-```shell
-python convert.py
-```
-But **firstly** download original datasets according to docs of ```XxxDataset.convert_dataset()```.
+Download **converted datasets** or convert them by yourself according to ```XxxDataset.convert_dataset()``` docs.
 
 
 ### (3) Pretrain and train
