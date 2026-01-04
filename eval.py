@@ -202,7 +202,7 @@ def main_eval_multi():
         assert cname == cfgf.name[:-3]
         print(f"###\n{cname}\n###")
         print(cfgf.as_posix(), ckptf.as_posix())
-        eval_info = main_eval_single(cfgf, ckptf)
+        eval_info = main(cfgf, ckptf)
         values = [eval_info[_] for _ in keys]
         values_str = ",".join([f"{_:.8f}" for _ in values])
         with open(log_file, "a") as f:
