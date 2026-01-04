@@ -159,17 +159,55 @@ def main(args):
         cfg, dataload_v, model, loss_fn_v, acc_fn_v, callback_v, is_viz, is_img
     )
 
-    ## dump data
 
-    if hasattr(pack2, "query"):
-        query = np.concatenate(pack2.query, axis=0)  # (i*b,t,n,c)
-        np.savez_compressed("query.npz", query)
+def main_eval_multi():
+    import os
 
-    if hasattr(pack2, "slotz"):
-        slotz = np.concatenate(pack2.slotz, axis=0)
-        np.savez_compressed("slotz.npz", slotz)
+    with open("eval_cfg.txt") as f:
+        cfg_files0 = f.readlines()
+    with open("eval_ckpt.txt") as f:
+        ckpt_files0 = f.readlines()
 
-    return pack2.log_info
+    cfg_files = []
+    for cfg_file0 in cfg_files0:
+        cfg_file0 = cfg_file0[2:].strip()  # remove ./ and \n
+        cfg_fn = cfg_file0.split("/")[-1].strip()
+        # find cfg_fn in cfg_base_dir
+        result = os.popen(f"find . -type f -path './config-*/{cfg_fn}'").read()
+        result = result.strip().split("\n")
+        assert len(result) == 1
+        cfg_file = result[0]
+        assert cfg_file.startswith("./config-") and cfg_file.endswith(".py")
+        cfg_files.append(Path(cfg_file))
+
+    ckpt_base_dir = Path(
+        "/media/GeneralZ/Storage/Active/20250620-randsfq/_ckpt_vq_vfm_ocl_github"
+    )
+    ckpt_files = []
+    for ckpt_file0 in ckpt_files0:
+        ckpt_file0 = ckpt_file0[2:].strip()
+        ckpt_file = ckpt_base_dir / ckpt_file0
+        ckpt_files.append(ckpt_file)
+
+    assert len(cfg_files) == len(ckpt_files)
+
+    log_file = Path("eval_multi.csv")
+    log_file.touch()
+    keys = ("ari", "ari_fg", "mbo", "miou")
+    # keys = ("recon", "align", "commit")
+    for cfgf, ckptf in zip(cfg_files, ckpt_files):
+        ckptn = ckptf.parent.name
+        cname = ckptn[:-3]
+        seed = int(ckptn[-2:])
+        assert cname == cfgf.name[:-3]
+        print(f"###\n{cname}\n###")
+        print(cfgf.as_posix(), ckptf.as_posix())
+        eval_info = main_eval_single(cfgf, ckptf)
+        values = [eval_info[_] for _ in keys]
+        values_str = ",".join([f"{_:.8f}" for _ in values])
+        with open(log_file, "a") as f:
+            f.writelines(f"{cname}-{seed},{values_str}\n")
+    return
 
 
 def parse_args():
