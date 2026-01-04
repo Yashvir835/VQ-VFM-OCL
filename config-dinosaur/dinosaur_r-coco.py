@@ -143,7 +143,7 @@ model = dict(
     ),
 )
 model_imap = dict(input="batch.image")  # condition < random
-model_omap = ["feature", "slotz", "attent", "attent2", "recon"]
+model_omap = ["feature", "slotz", "attenta", "recon", "attentd"]
 ckpt_map = []  # target<-source
 freez = [r"^m\.encode_backbone\..*"]
 
@@ -154,7 +154,7 @@ optimiz = dict(type=Adam, params=param_groups, lr=lr)
 gscale = dict(type=GradScaler)
 gclip = dict(type=ClipGradNorm, max_norm=1)
 
-loss_fn = dict(
+loss_fn_t = loss_fn_v = dict(
     recon=dict(
         metric=dict(type=MSELoss),
         map=dict(input="output.recon", target="output.feature"),
@@ -163,7 +163,7 @@ loss_fn = dict(
 )
 _acc_dict_ = dict(
     # metric=...,
-    map=dict(input="output.segment2", target="batch.segment"),
+    map=dict(input="output.segment", target="batch.segment"),
     transform=dict(
         type=Lambda,
         ikeys=[["input", "target"]],
@@ -197,11 +197,11 @@ before_step = [
 after_forward = [
     dict(
         type=Lambda,
-        ikeys=[["output.attent2"]],  # (b,s,h,w) -> (b,h,w,s)
+        ikeys=[["output.attentd"]],  # (b,s,h,w) -> (b,h,w,s)
         func=lambda _: ptnf.one_hot(
             interpolat_argmax_attent(_.detach(), size=resolut0).long()
         ).bool(),
-        okeys=[["output.segment2"]],
+        okeys=[["output.segment"]],
     ),
 ]
 callback_t = [

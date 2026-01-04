@@ -2,10 +2,11 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 from operator import attrgetter
 import re
 
-from diffusers.models import AutoencoderKL, AutoencoderTiny
+from diffusers.models import AutoencoderTiny
 from einops import rearrange
 import timm
 import torch as pt

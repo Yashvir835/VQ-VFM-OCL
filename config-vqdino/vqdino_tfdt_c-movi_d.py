@@ -229,7 +229,7 @@ optimiz = dict(type=Adam, params=param_groups, lr=lr)
 gscale = dict(type=GradScaler)
 gclip = dict(type=ClipGradNorm, max_norm=0.05)
 
-loss_fn = dict(
+loss_fn_t = loss_fn_v = dict(
     recon=dict(
         metric=dict(type=CrossEntropyLoss),
         map=dict(input="output.recon", target="output.zidx"),

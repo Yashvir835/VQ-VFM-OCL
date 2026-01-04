@@ -2,6 +2,7 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 import torch as pt
 import torch.nn as nn
 import torch.nn.functional as ptnf
@@ -70,20 +71,6 @@ class SlotAttention(nn.Module):
         o = pt.einsum("bqv,bvc->bqc", a, v)
         return o, a0
 
-    """@staticmethod
-    def inverted_scaled_dot_product_attention(q, k, v, eps=1e-5, h=4):
-        q = rearrange(q, "b q (h d) -> (b h) q d", h=h)
-        k = rearrange(k, "b k (h d) -> (b h) k d", h=h)
-        v = rearrange(v, "b k (h d) -> (b h) k d", h=h)
-        scale = q.size(2) ** -0.5  # temperature
-        logit = pt.einsum("bqc,bkc->bqk", q * scale, k)
-        a0 = logit.softmax(1)  # inverted: softmax over query  # , logit.dtype
-        a = a0 / (a0.sum(2, keepdim=True) + eps)  # re-normalize over key
-        # a = self_dropout(a)
-        o = pt.einsum("bqv,bvc->bqc", a, v)
-        o = rearrange(o, "(b h) q d -> b q (h d)", h=h)
-        return o, a0"""
-
 
 class CartesianPositionalEmbedding2d(nn.Module):
     """"""
@@ -148,9 +135,6 @@ class LearntPositionalEmbedding(nn.Module):
         output: in shape (b,*r,c)
         """
         max_r = ", ".join([f":{_}" for _ in input.shape[1:-1]])
-        # TODO XXX support variant length
-        # pe = timm.layers.pos_embed.resample_abs_pos_embed(self.pe, ...)
-        # pe = self.pe[:, :max_resolut, :]
         pe = eval(f"self.pe[:, {max_r}, :]")
         output = input + pe
         if retp:
@@ -187,8 +171,6 @@ class NormalSeparat(nn.Module):
 
 class NormalShared(nn.Module):
     """Shared gaussian as queries."""
-
-    # TODO new trick: Conditional Random Initialization
 
     def __init__(self, num, dim):
         super().__init__()
@@ -290,12 +272,6 @@ class Codebook(nn.Module):
             encode = encode.detach()
         elif detach == "templat":
             templat = templat.detach()
-        # b, c, h, w = encode.shape
-        # dist = __class__.euclidean_distance(  # (b*h*w,c) (m,c) -> (b*h*w,m)
-        #    encode.permute(0, 2, 3, 1).flatten(0, -2), templat
-        # )
-        # dist = dist.view(b, h, w, -1).permute(0, 3, 1, 2)  # (b,m,h,w)
-        # simi = -dist.square()  # better than without  # TODO XXX learnable scale ???
         dist = (  # always better than cdist.square, why ???
             encode.square().sum(1, keepdim=True)  # (b,1,h,w)
             + templat.square().sum(1)[None, :, None, None]

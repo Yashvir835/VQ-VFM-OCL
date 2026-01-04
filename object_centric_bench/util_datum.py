@@ -2,69 +2,14 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 from io import BytesIO
 import colorsys
 
 import av
-import cv2
 import numpy as np
 import torch as pt
 import torchvision.utils as ptvu
-
-
-def normaliz_for_visualiz(image: np.ndarray):
-    return (image - image.min()) / (image.max() - image.min())
-
-
-def even_resize_and_center_crop(image: np.ndarray, size: int, interp=cv2.INTER_LINEAR):
-    h0, w0 = image.shape[:2]
-    ratio = size / min(h0, w0)
-    image2 = cv2.resize(image, dsize=None, fx=ratio, fy=ratio, interpolation=interp)
-    h2, w2 = image2.shape[:2]
-    t = (h2 - size) // 2
-    l = (w2 - size) // 2
-    b = t + size
-    r = l + size
-    output = image2[t:b, l:r]
-    return output
-
-
-def calc_foreground_center_bbox(segment_index, haxis=-2, waxis=-1):
-    """
-    segment_index: in shape (..,h,w)
-    """
-    foreground = segment_index > 0
-    _, y, x = np.where(foreground)
-    l = x.min()
-    t = y.min()
-    r = x.max()
-    b = y.max()
-    cx, cy = (l + r) / 2, (t + b) / 2
-    h, w = segment_index.shape[haxis], segment_index.shape[waxis]
-    side = min(h, w)
-    lobe = side / 2
-    if h == w:
-        bbox = [0, 0, w, h]
-    elif h < w:
-        bbox = [cx - lobe, 0, cx + lobe, h]
-    else:  # h > w
-        bbox = [0, cy - lobe, w, cy + lobe]
-    bbox = np.round(bbox).astype("int32")
-    if bbox[0] < 0:
-        bbox[0] = 0
-        bbox[2] = side
-    if bbox[1] < 0:
-        bbox[1] = 0
-        bbox[3] = side
-    if bbox[2] > w:
-        bbox[2] = w
-        bbox[0] = w - side
-    if bbox[3] > h:
-        bbox[3] = h
-        bbox[1] = h - side
-    assert np.all(bbox[:2] >= 0) and (bbox[2] <= w) and (bbox[3] <= h)
-    assert np.all(bbox[2:] - bbox[:2] == np.array([side] * 2))
-    return bbox
 
 
 def rgb_segment_to_index_segment(segment_rgb: np.ndarray):
@@ -81,26 +26,6 @@ def rgb_segment_to_index_segment(segment_rgb: np.ndarray):
         .astype("uint8")
     )
     return segment_idx
-
-
-def index_segment_to_bbox(segment_idx: np.ndarray):
-    """
-    segment_idx: shape=(h,w)
-    bbox: shape=(n,c=4), ltrb
-    """
-    assert segment_idx.ndim == 2 and segment_idx.dtype == np.uint8
-    idxs = np.unique(segment_idx).tolist()
-    idxs.sort()
-    if 0 in idxs:
-        idxs.remove(0)  # not include the bbox for background
-    bbox = np.zeros([len(idxs), 4], dtype="float32")
-    for i, idx in enumerate(idxs):
-        y, x = np.where(segment_idx == idx)
-        bbox[i, 0] = np.min(x)  # left
-        bbox[i, 1] = np.min(y)  # top
-        bbox[i, 2] = np.max(x)  # right
-        bbox[i, 3] = np.max(y)  # bottom
-    return bbox
 
 
 def mask_segment_to_bbox_np(segment):

@@ -1,5 +1,5 @@
 from object_centric_bench.datum import (
-    RandomSliceTo1,
+    StridedRandomSlice1,
     RandomCrop,
     Resize,
     RandomFlip,
@@ -48,7 +48,7 @@ lr = 2e-3
 IMAGENET_MEAN = [[[123.675]], [[116.28]], [[103.53]]]
 IMAGENET_STD = [[[58.395]], [[57.12]], [[57.375]]]
 transform_t = [
-    dict(type=RandomSliceTo1, keys=["video"], dim=0, size=6),
+    dict(type=StridedRandomSlice1, keys=["video"], dim=0, size=6),
     # the following 2 == RandomResizedCrop: better than max sized random crop
     dict(type=RandomCrop, keys=["video"], size=None, scale=[0.75, 1]),
     dict(type=Resize, keys=["video"], size=resolut0, interp="bilinear"),
@@ -113,7 +113,7 @@ optimiz = dict(type=Adam, params=param_groups, lr=lr)
 gscale = dict(type=GradScaler)
 gclip = dict(type=ClipGradNorm, max_norm=1)
 
-loss_fn = dict(
+loss_fn_t = loss_fn_v = dict(
     recon=dict(
         metric=dict(type=MSELoss),
         map=dict(input="output.decode", target="batch.video"),

@@ -2,6 +2,7 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 import math
 import random
 
@@ -150,47 +151,6 @@ class Slice1:
         op_str = f"x[{prefix}{start}:{end}:{step},...]"
         x = eval(compile(op_str, "", "eval"))
         return x
-
-
-class SliceTo1:
-    """Slice a dimension of a tensor to a given size."""
-
-    def __init__(self, keys, dim, size, step=1, mode="center"):
-        """
-        - size: if size <= tensor.size(dim) and step == 1 then skip it
-        - mode: left, center, right
-        """
-        self.keys = keys
-        self.dim = dim
-        self.size = size
-        self.step = step
-        self.mode = mode
-
-    def __call__(self, **sample: dict) -> dict:
-        # pack = pack.copy()
-        for key in self.keys:
-            input = DictTool.getattr(sample, key)
-            size = input.size(self.dim)
-            if size <= self.size and self.step == 1:
-                continue
-            start, end = __class__.calc_slicing(self.size, size, self.mode)
-            output = Slice1.slice1(input, self.dim, start, end, self.step)
-            DictTool.setattr(sample, key, output)
-        return sample
-
-    @staticmethod
-    def calc_slicing(target, size, mode):
-        assert target <= size
-        if mode == "left":
-            start = 0
-        elif mode == "center":
-            start = (size - target) // 2
-        elif mode == "right":
-            start = size - target
-        else:
-            raise "ValueError"
-        end = start + target
-        return start, end
 
 
 class RandomSliceTo1:
@@ -462,4 +422,3 @@ class CenterCrop:
         b = t + size[0]
         r = l + size[1]
         return t, l, b, r
-

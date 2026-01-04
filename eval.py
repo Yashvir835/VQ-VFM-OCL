@@ -1,10 +1,15 @@
+"""
+Copyright (c) 2024 Genera1Z
+https://github.com/Genera1Z
+"""
+
+from argparse import ArgumentParser
 from pathlib import Path
 
-from einops import rearrange
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch as pt
+import tqdm
 
 from object_centric_bench.datum import DataLoader
 from object_centric_bench.util_datum import draw_segmentation_np
@@ -14,16 +19,17 @@ from object_centric_bench.util import Config, build_from_config
 
 
 @pt.inference_mode()
-def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
+def val_epoch(
+    cfg, dataset_v, model, loss_fn_v, acc_fn_v, callback_v, is_viz=False, is_img=False
+):
     pack = Config({})
     pack.dataset_v = dataset_v
     pack.model = model
-    pack.loss_fn = loss_fn
+    pack.loss_fn_v = loss_fn_v
     pack.acc_fn_v = acc_fn_v
     pack.callback_v = callback_v
     pack.epoch = 0
 
-    is_img = True  # TODO XXX
     pack2 = Config({})
 
     mean = pt.from_numpy(np.array(cfg.IMAGENET_MEAN, "float32"))
@@ -34,9 +40,7 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
     pack.model.eval()
     [_.before_epoch(**pack) for _ in pack.callback_v]
 
-    for i, batch in enumerate(pack.dataset_v):
-        # if i < 141 or i > 141:  # TODO XXX
-        #     continue
+    for i, batch in enumerate(tqdm.tqdm(pack.dataset_v)):
         pack.batch = {k: v.cuda() for k, v in batch.items()}
 
         [_.before_step(**pack) for _ in pack.callback_v]
@@ -44,10 +48,10 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
         with pt.autocast("cuda", enabled=True):
             pack.output = pack.model(**pack)
             [_.after_forward(**pack) for _ in pack.callback_v]
-            pack.loss = pack.loss_fn(**pack)
+            pack.loss = pack.loss_fn_v(**pack)
         pack.acc = pack.acc_fn_v(**pack)
 
-        if 0:  # TODO XXX
+        if is_viz:
             # makdir
             save_dn = Path(cfg.name)
             if not Path(save_dn).exists():
@@ -57,12 +61,9 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
             imgs_gt = (  # image video
                 (pack.batch[img_key] * std.cuda() + mean.cuda()).clip(0, 255).byte()
             )
-            segs_gt = pack.batch["segment"].argmax(-1)  # onehot seg -> number seg
+            segs_gt = pack.batch["segment"]
             # read pd attent -> pd segment
-            if "segment2" in pack.output:
-                segs_pd = pack.output["segment2"].argmax(-1)
-            else:
-                segs_pd = pack.output["segment"].argmax(-1)
+            segs_pd = pack.output["segment"]
             # visualize gt image or video
             for img_gt, seg_gt, seg_pd in zip(imgs_gt, segs_gt, segs_pd):
                 if is_img:
@@ -71,6 +72,7 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
                     ]
                 for tcnt, (igt, sgt, spd) in enumerate(zip(img_gt, seg_gt, seg_pd)):
                     igt = igt.permute(1, 2, 0).cpu().numpy()
+                    igt = cv2.cvtColor(igt, cv2.COLOR_RGB2BGR)
                     sgt = sgt.cpu().numpy()
                     spd = spd.cpu().numpy()
                     save_path = save_dn / f"{cnt:06d}-{tcnt:06d}"
@@ -98,30 +100,13 @@ def val_epoch(cfg, dataset_v, model, loss_fn, acc_fn_v, callback_v):
     return pack2
 
 
-def main_eval_single(
-    # cfg_file="config-smoothsa/smoothsa_r_recogn-coco.py",  # 6680
-    # ckpt_file="archive-recogn/smoothsa_r_recogn-coco/42/0002.pth",
-    # cfg_file="config-spot/spot_r_recogn-coco.py",  # 6570
-    # ckpt_file="archive-recogn/spot_r_recogn-coco/42/0002.pth",
-    # cfg_file="config-smoothsa/smoothsav_r_recogn-ytvis.py",  # 8836
-    # ckpt_file="archive-recogn/smoothsav_r_recogn-ytvis/42/0011.pth",
-    # cfg_file="config-slotcontrast/slotcontrast_r_recogn-ytvis.py",  # 9151
-    # ckpt_file="archive-recogn/slotcontrast_r_recogn-ytvis/42/0010.pth",
-    # cfg_file="config-smoothsa/smoothsav_r-ytvis.py",
-    # ckpt_file="../_20250620-dias0_randsfq_smoothsa-ckpt/20250620-dias0_randsfq_smoothsa-smoothsav-vvv/save/smoothsav_r-ytvis/42-0159.pth",
-    cfg_file="config-slotcontrast/slotcontrast_r-ytvis.py",
-    ckpt_file="../_20250620-dias0_randsfq_smoothsa-ckpt/20250620-dias0_randsfq_smoothsa-slotcontrast_ce/save/slotcontrast_r-ytvis/42-0155.pth",
-):
-    # data_dir = "/scratch/work/zhaor5/datasets"  # TODO XXX
-    # data_dir = "/scratch/project_2008396/Datasets"
-    # data_dir = os.environ["LOCAL_SCRATCH"]
-    # print(f"data_dir: {data_dir}")
-    data_dir = "/media/GeneralZ/Storage/Static/datasets"  # TODO XXX
+def main(args):
+    cfg_file = Path(args.cfg_file)
+    data_path = Path(args.data_dir)
+    ckpt_file = Path(args.ckpt_file)
+    is_viz = args.is_viz
+    is_img = args.is_img
     pt.backends.cudnn.benchmark = True
-
-    cfg_file = Path(cfg_file)
-    data_path = Path(data_dir)
-    ckpt_file = Path(ckpt_file)
 
     assert cfg_file.name.endswith(".py")
     assert cfg_file.is_file()
@@ -136,7 +121,7 @@ def main_eval_single(
     dataset_v = build_from_config(cfg.dataset_v)
     dataload_v = DataLoader(
         dataset_v,
-        cfg.batch_size_v // 2,  # TODO XXX
+        cfg.batch_size_v,  # TODO XXX // 2
         shuffle=False,
         num_workers=cfg.num_work,
         collate_fn=build_from_config(cfg.collate_fn_v),
@@ -159,7 +144,7 @@ def main_eval_single(
 
     ## learn init
 
-    loss_fn = MetricWrap(**build_from_config(cfg.loss_fn))
+    loss_fn_v = MetricWrap(**build_from_config(cfg.loss_fn_v))
     acc_fn_v = MetricWrap(detach=True, **build_from_config(cfg.acc_fn_v))
 
     cfg.callback_v = [_ for _ in cfg.callback_v if _.type.__name__ != "SaveModel"]
@@ -170,7 +155,9 @@ def main_eval_single(
 
     ## do eval
 
-    pack2 = val_epoch(cfg, dataload_v, model, loss_fn, acc_fn_v, callback_v)
+    pack2 = val_epoch(
+        cfg, dataload_v, model, loss_fn_v, acc_fn_v, callback_v, is_viz, is_img
+    )
 
     ## dump data
 
@@ -185,56 +172,33 @@ def main_eval_single(
     return pack2.log_info
 
 
-def main_eval_multi():
-    import os
-
-    with open("eval_cfg.txt") as f:
-        cfg_files0 = f.readlines()
-    with open("eval_ckpt.txt") as f:
-        ckpt_files0 = f.readlines()
-
-    cfg_files = []
-    for cfg_file0 in cfg_files0:
-        cfg_file0 = cfg_file0[2:].strip()  # remove ./ and \n
-        cfg_fn = cfg_file0.split("/")[-1].strip()
-        # find cfg_fn in cfg_base_dir
-        result = os.popen(f"find . -type f -path './config-*/{cfg_fn}'").read()
-        result = result.strip().split("\n")
-        assert len(result) == 1
-        cfg_file = result[0]
-        assert cfg_file.startswith("./config-") and cfg_file.endswith(".py")
-        cfg_files.append(Path(cfg_file))
-
-    ckpt_base_dir = Path(
-        "/media/GeneralZ/Storage/Active/20250620-randsfq/_ckpt_vq_vfm_ocl_github"
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--cfg_file",
+        type=str,  # TODO XXX
+        default="config-smoothsa/smoothsa_r-coco.py",
     )
-    ckpt_files = []
-    for ckpt_file0 in ckpt_files0:
-        ckpt_file0 = ckpt_file0[2:].strip()
-        ckpt_file = ckpt_base_dir / ckpt_file0
-        ckpt_files.append(ckpt_file)
-
-    assert len(cfg_files) == len(ckpt_files)
-
-    log_file = Path("eval_multi.csv")
-    log_file.touch()
-    keys = ("ari", "ari_fg", "mbo", "miou")
-    # keys = ("recon", "align", "commit")
-    for cfgf, ckptf in zip(cfg_files, ckpt_files):
-        ckptn = ckptf.parent.name
-        cname = ckptn[:-3]
-        seed = int(ckptn[-2:])
-        assert cname == cfgf.name[:-3]
-        print(f"###\n{cname}\n###")
-        print(cfgf.as_posix(), ckptf.as_posix())
-        eval_info = main_eval_single(cfgf, ckptf)
-        values = [eval_info[_] for _ in keys]
-        values_str = ",".join([f"{_:.8f}" for _ in values])
-        with open(log_file, "a") as f:
-            f.writelines(f"{cname}-{seed},{values_str}\n")
-    return
+    parser.add_argument(  # TODO XXX
+        "--data_dir", type=str, default="/media/GeneralZ/Storage/Static/datasets"
+    )
+    parser.add_argument(
+        "--ckpt_file",
+        type=str,  # TODO XXX
+        default="archive-smoothsa/smoothsa_r-coco/42-0027.pth",
+    )
+    parser.add_argument(
+        "--is_viz",
+        type=bool,  # TODO XXX
+        default=False,
+    )
+    parser.add_argument(
+        "--is_img",  # image or video
+        type=bool,  # TODO XXX
+        default=False,
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    # main_eval_single()
-    main_eval_multi()
+    main(parse_args())

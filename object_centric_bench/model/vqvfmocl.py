@@ -2,6 +2,7 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 from einops import rearrange, repeat
 import torch as pt
 import torch.nn as nn
@@ -70,13 +71,13 @@ class VqVfmOcl(nn.Module):
         encode = self.encode_project(encode)
 
         query = self.initializ(b if condit is None else condit)  # (b,n,c)
-        slotz, attent = self.aggregat(encode, query)
-        attent = rearrange(attent, "b n (h w) -> b n h w", h=h)
+        slotz, attenta = self.aggregat(encode, query)
+        attenta = rearrange(attenta, "b n (h w) -> b n h w", h=h)
 
         dkwds = locals()
         dkwds.pop("self")
         decode = self.forward_decode(**dkwds)  # type: tuple
-        return feature, zidx, quant, slotz, attent, *decode
+        return feature, zidx, quant, slotz, attenta, *decode
 
     def forward_decode(self, **kwds) -> tuple:
         raise NotImplementedError
@@ -140,20 +141,20 @@ class VqVfmOclT(VqVfmOcl):
 
         query = self.initializ(b if condit is None else condit[:, 0, :, :])  # (b,n,c)
         slotz = []
-        attent = []
+        attenta = []
         for i in range(t):
-            slotz_i, attent_i = self.aggregat(encode[:, i, :, :], query)
+            slotz_i, attenta_i = self.aggregat(encode[:, i, :, :], query)
             query = self.transit(slotz_i)
             slotz.append(slotz_i)  # [(b,n,c),..]
-            attent.append(attent_i)  # [(b,n,h*w),..]
+            attenta.append(attenta_i)  # [(b,n,h*w),..]
         slotz = pt.stack(slotz, 1)  # (b,t,n,c)
-        attent = pt.stack(attent, 1)  # (b,t,n,h*w)
-        attent = rearrange(attent, "b t n (h w) -> b t n h w", h=h)
+        attenta = pt.stack(attenta, 1)  # (b,t,n,h*w)
+        attenta = rearrange(attenta, "b t n (h w) -> b t n h w", h=h)
 
         dkwds = locals()
         dkwds.pop("self")
         decode = self.forward_decode(**dkwds)  # type: tuple
-        return feature, zidx, quant, slotz, attent, *decode
+        return feature, zidx, quant, slotz, attenta, *decode
 
 
 class VVOTfd(VqVfmOcl):
@@ -193,11 +194,11 @@ class VVOMlp(VqVfmOcl):
     def forward_decode(self, quant, slotz, **kwds):
         b, c, h, w = quant.shape
         clue = [h, w]
-        recon, attent2 = self.decode(clue, slotz)
+        recon, attentd = self.decode(clue, slotz)
         recon = rearrange(recon, "b (h w) c -> b c h w", h=h)
-        attent2 = rearrange(attent2, "b n (h w) -> b n h w", h=h)
+        attentd = rearrange(attentd, "b n (h w) -> b n h w", h=h)
         # interleave feature and quant as recon target (in whichever dimensions): bad
-        return recon, attent2
+        return recon, attentd
         # forward ouput: feature, zidx, quant, slotz, attent, recon, attent2
 
 
@@ -210,10 +211,10 @@ class VVOMlpT(VqVfmOclT):
         b, t, c, h, w = quant.shape
         clue = [h, w]
         slotz = slotz.flatten(0, 1)
-        recon, attent2 = self.decode(clue, slotz)
+        recon, attentd = self.decode(clue, slotz)
         recon = rearrange(recon, "(b t) (h w) c -> b t c h w", b=b, h=h)
-        attent2 = rearrange(attent2, "(b t) n (h w) -> b t n h w", b=b, h=h)
-        return recon, attent2
+        attentd = rearrange(attentd, "(b t) n (h w) -> b t n h w", b=b, h=h)
+        return recon, attentd
         # forward output: feature, zidx, quant, slotz, attent, recon, attent2
 
 
@@ -243,4 +244,3 @@ class VVODfzT(VqVfmOclT):
         noise = rearrange(noise, "(b t) c h w -> b t c h w", b=b)
         return recon, noise
         # forward output: feature, zidx, quant, slotz, attent, recon, noise
-

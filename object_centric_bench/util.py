@@ -2,15 +2,10 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 import importlib
-import os
 import pathlib as pl
-import pdb
-import re
 import sys
-
-
-MODULE_DICT = {}
 
 
 class Config(dict):
@@ -49,12 +44,6 @@ class Config(dict):
         super(Config, self).__setitem__(name, value)
 
     __setitem__ = __setattr__
-
-    # def __iter__(self):  # TODO XXX conflict with ``build_from_config`` in ``list``s  # TODO XXX ???
-    #     # values = list(self.values())
-    #     # if len(values) == 1:
-    #     #     return values[0]  # TODO check this
-    #     return iter(self.values())  # keeps order if using Python 3.7+
 
     @staticmethod
     def fromfile(cfg_file: pl.Path) -> "Config":
@@ -99,68 +88,13 @@ def build_from_config(cfg):
             obj = cls_key(**cfg)  # MODULE_DICT[cls_key](**cfg)
         else:
             obj = cfg
-    # elif isinstance(cfg, DynamicConfig):
-    #     dcfg = cfg.__dict__.copy()  # TODO deepcopy ???
-    #     dcfg.pop("root")
-    #     if "clsdef" in dcfg:
-    #         clsdef = dcfg.pop("clsdef")
-    #     else:
-    #         clsdef = None
-    #     for k, v in dcfg.items():
-    #         v = eval(f"cfg.{k}")
-    #         dcfg[k] = build_from_config(v)
-    #     if clsdef is not None:
-    #         obj = clsdef(**dcfg)
-    #     else:
-    #         obj = cfg
     else:
         obj = cfg
     return obj
 
 
-def unsqueeze_to(input, target):
-    """For PyTorch Tensor, unsqueeze ``input`` shape to match ``target.shape``.
-    Suppose all ``input`` dims are sequentially contained in ``target`` shape.
-    """
-    if input.ndim == target.ndim:
-        return input
-    assert input.ndim < target.ndim
-    assert all(_ in target.shape for _ in input.shape)
-    shape = [1] * target.ndim
-    offset = 0
-    for s1 in input.shape:
-        idx = offset + target.shape[offset:].index(s1)  # ensure sequential contain
-        shape[idx] = s1
-        offset = idx + 1
-    return input.view(*shape)
-
-
-def find_sect(sects, n):
-    for i, r in enumerate(sects):
-        if r[0] <= n <= r[1]:
-            return i
-    raise "ValueError"
-
-
 class DictTool:
     """Support nested `dict`s and `list`s."""
-
-    # @staticmethod
-    # def popattr(obj, key):
-    #     assert isinstance(obj, (dict, list))
-
-    #     def resolve_attr(obj, key):
-    #         keys = key.split(".")
-    #         for name in keys:
-    #             if isinstance(obj, dict):
-    #                 obj = obj.pop(name)
-    #             elif isinstance(obj, list) and name.isdigit():
-    #                 obj = obj.pop(int(name))
-    #             else:
-    #                 raise KeyError(f"Invalid key or index: {name}")
-    #         return obj
-
-    #     return resolve_attr(obj, key)
 
     @staticmethod
     def getattr(obj, key):
@@ -241,29 +175,3 @@ class ComposeNoStar(Compose):
         for t in self.transforms:
             kwds = t(kwds)
         return kwds
-
-
-def get_subclass_method_keys(obj, superclass):
-    return [
-        attr
-        for attr in dir(obj)
-        if callable(getattr(obj, attr)) and not hasattr(superclass, attr)
-    ]
-
-
-def add_hook_to_staticmethod(cls, method_name, hook):
-    old_method = getattr(cls, method_name)
-
-    # unwrap staticmethod into underlying function if needed
-    if isinstance(old_method, staticmethod):
-        old_func = old_method.__func__
-    else:
-        old_func = old_method
-
-    def wrapped(*args, **kwargs):
-        result = old_func(*args, **kwargs)
-        hook(result)  # run hook at the end
-        return result
-
-    # reassign as staticmethod
-    setattr(cls, method_name, staticmethod(wrapped))

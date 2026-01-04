@@ -114,7 +114,6 @@ Supported OCL methods include, categorized by OCL decoding:
     - vqvfmocl.py       # *** for our VVO model building ***
     - ...
   - learn/              # metrics, optimizers and callbacks
-- convert.py
 - train.py
 - eval.py
 - requirements.txt
@@ -170,69 +169,55 @@ Datasets ClevrTex, COCO, VOC and MOVi-D, which are converted into LMDB format an
 
 ## 🔥 How to Use
 
+Take VQDINO-Tfd on COCO as an example.
 
-### (1) Install requirements
+**(1) Environment**
 
-(Using Python version 3.11)
+To set up the environment, run:
 ```shell
+# python 3.11
 pip install -r requirements.txt
 ```
-Use package versions no older than the specification.
 
+**(2) Dataset**
 
-### (2) Prepare datasets
+To prepare the dataset, download ***Converted Datasets*** and unzip to `path/to/your/dataset/`. Or convert them by yourself according to ```XxxDataset.convert_dataset()``` docs.
 
-Download **converted datasets** or convert them by yourself according to ```XxxDataset.convert_dataset()``` docs.
+**(3) Train**
 
-
-### (3) Pretrain and train
-
-Run training:
+To train the model, run:
 ```shell
-python train.py
-```
-But **firstly** change the arguments marked with ```TODO XXX``` to your needs.
-
-Specifically on training:
-- For **SLATE/STEVE, SlotDiffusion and VQDINO-Tfd/Mlp/Dfz**, there are two stages for training. For example,
-```shell
-# 1. pretrain the VAE module
+# 1. pretrain the VQDINO VAE model
 python train.py \
     --seed 42 \
-    --cfg_file config-slatesteve/vqvae-coco-c256.py \
-    --data_dir path/to/coco
+    --cfg_file config-vqdino/vqdino-coco-c256.py \
+    --data_dir path/to/your/dataset \
+    --save_dir save
 
-# 2. place the best VAE checkpoint at archive-slatesteve/vqvae-coco-c256/best.pth
+# *. place the best VAE checkpoint at archive-slatesteve/vqvae-coco-c256-msf/best.pth
 mv save archive-slatesteve
 
-# 3. train the OCL model
+# 2. train the VQDINO OCL model
 python train.py \
     --seed 42 \
-    --cfg_file config-slatesteve/slate_r_vqvae-coco.py \
-    --data_dir path/to/coco \
-    --ckpt_file archive-slatesteve/vqvae-coco-c256/best.pth
+    --cfg_file config-vqdino/vqdino_tfd_r-coco.py \
+    --data_dir path/to/your/dataset \
+    --save_dir save \
+    --ckpt_file archive-vqdino/vqdino-coco-c256/best.pth
 ```
 
-- Please note that:
-  - VQDINO-Tfd/Mlp models share the same ``config-vqdino/vqdino-xxx-c256.py`` and corresponding checkpoint as VAE pretraining;
-  - VQDINO-Dfz models take ``config-vqdino/vqdino-xxx-c4.py`` and corresponding checkpoint as VAE pretraining.
+**(4) Evaluate**
 
-- For **DINOSAUR**, there is only one training stage. For example,
+To evaluate the model, run:
 ```shell
-python train.py \
-    --seed 42 \
-    --cfg-file config-dinosaur/dinosaur_r-coco.py \
-    --data_dir path/to/coco
+python eval.py \
+    --cfg_file config-vqdino/vqdino_tfd_r-coco.py \
+    --data_dir path/to/your/dataset \
+    --ckpt_file archive-vqdino/vqdino_tfd_r-coco/best.pth \
+    --is_viz True
+# object discovery accuracy values will be printed in the terminal
+# object discovery visualization will be saved to ./vqdino_tfd_r-coco/
 ```
-
-
-### (4) Evaluate
-
-Run evaluation:
-```shell
-python eval.py
-```
-But **firstly** modify places marked with ``TODO XXX`` according to your needs.
 
 
 
@@ -261,12 +246,9 @@ model = ClassName(key1=value1,..)
 
 ## 🤗 Contact & Support
 
-I am now working on Object-Centric Learning (OCL). If you have any cool ideas or issues, do not hasitate to contact me!
-- Website: [genera1z.github.io](https://genera1z.github.io)
-- WeChat: Genera1Z
-- GoogleScholar: [MqlwrKAAAAAJ](https://scholar.google.com/citations?hl=en&user=MqlwrKAAAAAJ&view_op=list_works&sortby=pubdate)
-- LinkedIn: [rongzhen-zhao-3b7215247](https://www.linkedin.com/in/rongzhen-zhao-3b7215247)
-- eMail: rongzhen.zhao@aalto.fi, zhaorongzhenagi@gmail.com
+If you have any issues on this repo or cool ideas on OCL, please do not hesitate to contact me!
+- page: https://genera1z.github.io
+- email: rongzhen.zhao@aalto.fi, zhaorongzhenagi@gmail.com
 
 If you are applying OCL (not limited to this repo) to tasks like **visual question answering**, **visual prediction/reasoning**, **world modeling** and **reinforcement learning**, let us collaborate!
 

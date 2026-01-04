@@ -2,6 +2,7 @@
 Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
+
 from abc import ABC, abstractmethod
 
 import lpips
@@ -112,18 +113,6 @@ class CrossEntropyLoss(Metric):
         return self.finaliz(loss)  # (b,) (b,)
 
 
-class L1Loss(Metric):
-    """``nn.L1Loss``."""
-
-    def forward(self, input, target=None):
-        if target is None:
-            target = pt.zeros_like(input)
-        assert input.ndim == target.ndim >= 1
-        # loss = ptnf.l1_loss(input, target, reduction="none")  # (b,..)
-        loss = ptnf.l1_loss(input, target)[None]  # (b=1,)
-        return self.finaliz(loss)  # (b,) (b,)
-
-
 class MSELoss(Metric):
     """``nn.MSELoss``."""
 
@@ -157,6 +146,9 @@ class LPIPSLoss(Metric):
         # lpips = self.lpips(target, input)  # (b,c,h,w)
         lpips = self.lpips(target, input).mean()[None]  # (b=1,)
         return self.finaliz(lpips)  # (b,) (b,)
+
+
+####
 
 
 class ARI(Metric):
