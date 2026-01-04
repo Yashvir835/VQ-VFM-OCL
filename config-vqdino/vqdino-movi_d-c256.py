@@ -1,7 +1,7 @@
 import torch.nn.functional as ptnf
 
 from object_centric_bench.datum import (
-    StridedRandomSlice1,
+    RandomSlice1,
     RandomCrop,
     Resize,
     RandomFlip,
@@ -56,7 +56,7 @@ lr = 2e-3  # >1e-3
 IMAGENET_MEAN = [[[123.675]], [[116.28]], [[103.53]]]
 IMAGENET_STD = [[[58.395]], [[57.12]], [[57.375]]]
 transform_t = [
-    dict(type=StridedRandomSlice1, keys=["video"], dim=0, size=6),
+    dict(type=RandomSlice1, keys=["video"], dim=0, size=6),
     # the following 2 == RandomResizedCrop: better than max sized random crop
     dict(type=RandomCrop, keys=["video"], size=None, scale=[0.75, 1]),
     dict(type=Resize, keys=["video"], size=resolut0, interp="bilinear"),
