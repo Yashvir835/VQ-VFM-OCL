@@ -1,6 +1,18 @@
 # `VVO` Vector-Quantized Vision Foundation Models for Object-Centric Learning
 
 
+<br>
+<br>
+
+## ⚗️ Further Research
+
+Please check our brand new OCL works (2026/01/06):
+- **[RandSF.Q](https://github.com/Genera1Z/RandSF.Q)**: surpasses state-of-the-art OCL method, i.e., **SlotContrast**, on videos significantly, by **up to 10 points**!
+- **[SmoothSA](https://github.com/Genera1Z/SmoothSA)**: improves state-of-the-art OCL on both images and videos consistently **even further** by minimal architectural modification!
+
+<br>
+<br>
+<br>
 
 [![](https://img.shields.io/badge/arXiv-2502.20263-red)](https://arxiv.org/abs/2502.20263)
 [![](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
@@ -92,6 +104,7 @@ Supported OCL methods include, categorized by OCL decoding:
 
 ## 🚑️ Changelogs
 
+- [2026/01/06] Unify interfaces to [RandSF.Q](https://github.com/Genera1Z/RandSF.Q) and [SmoothSA](https://github.com/Genera1Z/SmoothSA), which are our brand new SotA methods!
 - [2025/11/07] Fix ``lmdb`` multiprocessing issues due to ``torch>=3.7``.
 - ⭐⭐⭐ [2025/10/20] ⭐⭐⭐ **Object discovery accuracy values are updated for version 3. Check this table file [acc-v3.xlsx](acc-v3.xlsx) for details**.
 - [2025/10/19] Version 3: re-implement segmentation evaluation; corresponding new dataset lmdb files are uploaded. Thus, object discovery acc could change a little, especially ARI values.
@@ -251,14 +264,6 @@ If you have any issues on this repo or cool ideas on OCL, please do not hesitate
 - email: rongzhen.zhao@aalto.fi, zhaorongzhenagi@gmail.com
 
 If you are applying OCL (not limited to this repo) to tasks like **visual question answering**, **visual prediction/reasoning**, **world modeling** and **reinforcement learning**, let us collaborate!
-
-
-
-## ⚗️ Further Research
-
-Please check our brand new OCL works:
-- **[RandSF.Q](https://github.com/Genera1Z/RandSF.Q)**: surpasses state-of-the-art OCL method, i.e., **SlotContrast**, on videos significantly, by **up to 10 points**!
-- **[SmoothSA](https://github.com/Genera1Z/SmoothSA)**: improves state-of-the-art OCL on both images and videos consistently **even further** by minimal architectural modification!
 
 
 
