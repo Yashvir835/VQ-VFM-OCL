@@ -4,9 +4,9 @@
 <br>
 <br>
 
-## ⚗️ Update !!!
+## ⚗️ (2026/01/06) Update !!!
 
-Please check our brand new OCL works (2026/01/06):
+Please check our brand new OCL works:
 - **[RandSF.Q](https://github.com/Genera1Z/RandSF.Q)**: surpasses state-of-the-art OCL method, i.e., **SlotContrast**, on videos significantly, by **up to 10 points**!
 - **[SmoothSA](https://github.com/Genera1Z/SmoothSA)**: improves state-of-the-art OCL on both images and videos consistently **even further** by minimal architectural modification!
 
