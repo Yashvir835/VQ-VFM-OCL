@@ -159,35 +159,74 @@ def main(args):
         cfg, dataload_v, model, loss_fn_v, acc_fn_v, callback_v, is_viz, is_img
     )
 
+    return pack2.log_info
+
 
 def main_eval_multi(args):
-    import os
+    ckpt_paths = [
+        #
+        "archive-slatesteve/slate_r_vqvae-clevrtex",
+        "archive-slatesteve/slate_r_vqvae-coco",
+        "archive-slatesteve/slate_r_vqvae-voc",
+        "archive-slatesteve/steve_c_vqvae-movi_d",
+        #
+        "archive-vqdino_tfd/vqdino_tfd_r-clevrtex",
+        "archive-vqdino_tfd/vqdino_tfd_r-coco",
+        "archive-vqdino_tfd/vqdino_tfd_r-voc",
+        "archive-vqdino_tfd/vqdino_tfdt_c-movi_d",
+        #
+        "archive-dinosaur/dinosaur_r-clevrtex",
+        "archive-dinosaur/dinosaur_r-coco",
+        "archive-dinosaur/dinosaur_r-voc",
+        #
+        "archive-vqdino_mlp/vqdino_mlp_r-clevrtex",
+        "archive-vqdino_mlp/vqdino_mlp_r-coco",
+        "archive-vqdino_mlp/vqdino_mlp_r-voc",
+        #
+        "archive-slotdiffusion/slotdiffusion_r_vqvae-clevrtex",
+        "archive-slotdiffusion/slotdiffusion_r_vqvae-coco",
+        "archive-slotdiffusion/slotdiffusion_r_vqvae-voc",
+        #
+        "archive-vqdino_dfz/vqdino_dfz_r-clevrtex",
+        "archive-vqdino_dfz/vqdino_dfz_r-coco",
+        "archive-vqdino_dfz/vqdino_dfz_r-voc",
+        # #
+        # "archive-slatesteve-r384/slate_r_vqvae-coco-r384",
+        # "archive-slatesteve-r384/vqvae-coco-c256-r384",
+        # #
+        # "archive-vqdino_tfd-r384/vqdino-coco-c256-r384",
+        # "archive-vqdino_tfd-r384/vqdino_tfd_r-coco-r384",
+        # #
+        # "archive-dinosaur-r384/dinosaur_r-coco-r384",
+        # #
+        # "archive-vqdino_mlp-r384/vqdino-coco-c256-r384",
+        # "archive-vqdino_mlp-r384/vqdino_mlp_r-coco-r384",
+        # #
+        # "archive-slotdiffusion-r384/slotdiffusion_r_vqvae-coco-r384",
+        # "archive-slotdiffusion-r384/vqvae-coco-c4-r384",
+        # #
+        # "archive-vqdino_dfz-r384/vqdino-coco-c4-r384",
+        # "archive-vqdino_dfz-r384/vqdino_dfz_r-coco-r384",
+    ]
 
-    with open("eval_cfg.txt") as f:
-        cfg_files0 = f.readlines()
-    with open("eval_ckpt.txt") as f:
-        ckpt_files0 = f.readlines()
-
+    cfg_base_dir = Path(".")
+    ckpt_base_dir = Path("/media/GeneralZ/Storage/Active/0_ckpt_vq_vfm_ocl_github")
     cfg_files = []
-    for cfg_file0 in cfg_files0:
-        cfg_file0 = cfg_file0[2:].strip()  # remove ./ and \n
-        cfg_fn = cfg_file0.split("/")[-1].strip()
-        # find cfg_fn in cfg_base_dir
-        result = os.popen(f"find . -type f -path './config-*/{cfg_fn}'").read()
-        result = result.strip().split("\n")
-        assert len(result) == 1
-        cfg_file = result[0]
-        assert cfg_file.startswith("./config-") and cfg_file.endswith(".py")
-        cfg_files.append(Path(cfg_file))
-
-    ckpt_base_dir = Path(
-        "/media/GeneralZ/Storage/Active/20250620-randsfq/_ckpt_vq_vfm_ocl_github"
-    )
     ckpt_files = []
-    for ckpt_file0 in ckpt_files0:
-        ckpt_file0 = ckpt_file0[2:].strip()
-        ckpt_file = ckpt_base_dir / ckpt_file0
-        ckpt_files.append(ckpt_file)
+
+    for ckpt_path in ckpt_paths:
+        # ckpt_path to cfg_file
+        _, ckptfn = ckpt_path.strip().split("/", 1)
+        matches = list(cfg_base_dir.glob(f"config-*/{ckptfn}.py"))
+        assert len(matches) == 1
+        cfg_file = matches[0]
+
+        # ckpt_path to ckpt_file
+        ckpt_dir = ckpt_base_dir / ckpt_path
+        for seed in [42, 43, 44]:
+            ckpt_file = ckpt_dir / f"{seed}-best.pth"
+            cfg_files.append(cfg_file)
+            ckpt_files.append(ckpt_file)
 
     assert len(cfg_files) == len(ckpt_files)
 
@@ -196,9 +235,8 @@ def main_eval_multi(args):
     keys = ("ari", "ari_fg", "mbo", "miou")
     # keys = ("recon", "align", "commit")
     for cfgf, ckptf in zip(cfg_files, ckpt_files):
-        ckptn = ckptf.parent.name
-        cname = ckptn[:-3]
-        seed = int(ckptn[-2:])
+        cname = ckptf.parent.name
+        seed = int(ckptf.name.split("-")[0])
         assert cname == cfgf.name[:-3]
         print(f"###\n{cname}\n###")
         print(cfgf.as_posix(), ckptf.as_posix())

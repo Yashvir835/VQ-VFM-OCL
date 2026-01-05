@@ -256,7 +256,9 @@ If you are applying OCL (not limited to this repo) to tasks like **visual questi
 
 ## ⚗️ Further Research
 
-My further research works on OCL can be found in [my repos](https://github.com/Genera1Z?tab=repositories) or [my academic page](https://genera1z.github.io).
+Please check our brand new OCL works:
+- **[RandSF.Q](https://github.com/Genera1Z/RandSF.Q)**: surpasses state-of-the-art OCL method, i.e., **SlotContrast**, on videos significantly, by **up to 10 points**!
+- **[SmoothSA](https://github.com/Genera1Z/SmoothSA)**: improves state-of-the-art OCL on both images and videos consistently **even further** by minimal architectural modification!
 
 
 
