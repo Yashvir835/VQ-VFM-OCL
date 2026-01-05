@@ -11,7 +11,7 @@ from .basic import MLP
 
 
 class SlotAttention(nn.Module):
-    """TODO XXX modularization/cgv: correct the wrong implementation!"""
+    """"""
 
     def __init__(
         self, num_iter, embed_dim, ffn_dim, dropout=0, kv_dim=None, trunc_bp=None

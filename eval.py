@@ -52,7 +52,7 @@ def val_epoch(
         pack.acc = pack.acc_fn_v(**pack)
 
         if is_viz:
-            # makdir
+            # mkdir
             save_dn = Path(cfg.name)
             if not Path(save_dn).exists():
                 save_dn.mkdir(exist_ok=True)
@@ -121,7 +121,7 @@ def main(args):
     dataset_v = build_from_config(cfg.dataset_v)
     dataload_v = DataLoader(
         dataset_v,
-        cfg.batch_size_v,  # TODO XXX // 2
+        cfg.batch_size_v,
         shuffle=False,
         num_workers=cfg.num_work,
         collate_fn=build_from_config(cfg.collate_fn_v),
@@ -150,7 +150,7 @@ def main(args):
     cfg.callback_v = [_ for _ in cfg.callback_v if _.type.__name__ != "SaveModel"]
     for cb in cfg.callback_v:
         if cb.type.__name__ in ["AverageLog", "HandleLog"]:
-            cb.log_file = None  # TODO XXX change to current log file for eval
+            cb.log_file = None
     callback_v = build_from_config(cfg.callback_v)
 
     ## do eval
@@ -160,7 +160,7 @@ def main(args):
     )
 
 
-def main_eval_multi():
+def main_eval_multi(args):
     import os
 
     with open("eval_cfg.txt") as f:
@@ -202,7 +202,9 @@ def main_eval_multi():
         assert cname == cfgf.name[:-3]
         print(f"###\n{cname}\n###")
         print(cfgf.as_posix(), ckptf.as_posix())
-        eval_info = main(cfgf, ckptf)
+        args.cfg_file = cfgf
+        args.ckpt_file = ckptf
+        eval_info = main(args)
         values = [eval_info[_] for _ in keys]
         values_str = ",".join([f"{_:.8f}" for _ in values])
         with open(log_file, "a") as f:
@@ -240,3 +242,4 @@ def parse_args():
 
 if __name__ == "__main__":
     main(parse_args())
+    # main_eval_multi(parse_args())

@@ -45,10 +45,6 @@ class MetricWrap(nn.Module):
             metrics[key] = metric
         return metrics
 
-    # def compile(self):  # ??? compile everything ???
-    #     for v in self.metrics.values():
-    #         v["metric"].compile()
-
 
 class Metric(ABC, nn.Module):
     """

@@ -142,7 +142,7 @@ def main(args):
     dataset_t = build_from_config(cfg.dataset_t)
     dataload_t = DataLoader(
         dataset_t,
-        cfg.batch_size_t,  # TODO XXX TODO XXX TODO XXX TODO XXX // 2
+        cfg.batch_size_t,
         shuffle=True,
         num_workers=cfg.num_work,
         collate_fn=build_from_config(cfg.collate_fn_t),
@@ -251,7 +251,7 @@ def parse_args():
     parser.add_argument(
         "--seed",
         type=int,
-        default=42,  # TODO XXX
+        default=42,  # TODO XXX 42 43 44
     )
     parser.add_argument(
         "--cfg_file",

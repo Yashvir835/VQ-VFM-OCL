@@ -41,7 +41,6 @@ from .ocl import (
     LearntPositionalEmbedding,
     VQVAE,
     Codebook,
-    LearntPositionalEmbedding,
 )
 from .slatesteve import SLATE, STEVE, ARTransformerDecoder
 from .dinosaur import DINOSAUR, BroadcastMLPDecoder
