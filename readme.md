@@ -4,7 +4,7 @@
 <br>
 <br>
 
-## ⚗️ Further Research
+## ⚗️ Update !!!
 
 Please check our brand new OCL works (2026/01/06):
 - **[RandSF.Q](https://github.com/Genera1Z/RandSF.Q)**: surpasses state-of-the-art OCL method, i.e., **SlotContrast**, on videos significantly, by **up to 10 points**!
@@ -13,6 +13,10 @@ Please check our brand new OCL works (2026/01/06):
 <br>
 <br>
 <br>
+
+---
+
+
 
 [![](https://img.shields.io/badge/arXiv-2502.20263-red)](https://arxiv.org/abs/2502.20263)
 [![](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
