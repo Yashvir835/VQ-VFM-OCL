@@ -210,7 +210,7 @@ def main_eval_multi(args):
     ]
 
     cfg_base_dir = Path(".")
-    ckpt_base_dir = Path("/media/GeneralZ/Storage/Active/0_ckpt_vq_vfm_ocl_github")
+    ckpt_base_dir = Path("/media/GeneralZ/Storage/Active/0_ckpt_vqvfmocl_github")
     cfg_files = []
     ckpt_files = []
 
