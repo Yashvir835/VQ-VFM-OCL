@@ -232,7 +232,7 @@ python eval.py \
     --cfg_file config-vqdino/vqdino_tfd_r-coco.py \
     --data_dir path/to/your/dataset \
     --ckpt_file archive-vqdino/vqdino_tfd_r-coco/best.pth \
-    --is_viz True
+    --is_viz True \
     --is_img True
 # object discovery accuracy values will be printed in the terminal
 # object discovery visualization will be saved to ./vqdino_tfd_r-coco/
