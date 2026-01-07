@@ -50,7 +50,7 @@ Supported OCL methods include, categorized by OCL decoding:
 
 **(1) ⭐⭐⭐ Re-evaluated Performance Values @ Version 3 ⭐⭐⭐**
 
-Which are detailed in [acc-v3.xlsx](acc-v3.xlsx).
+Which are detailed in [acc-v3.xlsx](acc-v3.xlsx). (Encoding with backbone **DINO2-S/14** at resolution **256x256**/224 and **384x384**/336)
 
 |                                 |    ari    |   arifg  |    mbo   |   miou   |
 |---------------------------------|:---------:|:--------:|:--------:|:--------:|
