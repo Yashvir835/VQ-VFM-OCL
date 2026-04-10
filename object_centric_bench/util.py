@@ -3,7 +3,9 @@ Copyright (c) 2024 Genera1Z
 https://github.com/Genera1Z
 """
 
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import importlib
+import os
 import pathlib as pl
 import sys
 
@@ -175,3 +177,17 @@ class ComposeNoStar(Compose):
         for t in self.transforms:
             kwds = t(kwds)
         return kwds
+
+
+def concurrent_pool(func, iterables, nwork=None, mode="thread"):
+    ncpu = os.cpu_count() or 1
+    nwork = ncpu if nwork is None else min(ncpu, nwork)
+    if mode == "thread":
+        execut = ThreadPoolExecutor
+    elif mode == "process":
+        execut = ProcessPoolExecutor
+    else:
+        raise ValueError
+    with execut(nwork) as pool:
+        result = list(pool.map(func, *iterables))
+    return result

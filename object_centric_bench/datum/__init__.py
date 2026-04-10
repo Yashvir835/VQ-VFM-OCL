@@ -17,7 +17,7 @@ from .transform import (
     CenterCrop,
     Resize,
     Slice1,
-    RandomSliceTo1,
-    StridedRandomSlice1,
+    RandomSliceToSequence,
+    StridedRandomSliceSequence,
 )
 from .collate import ClPadToMax1, ClPadTo1, DefaultCollate
