@@ -112,7 +112,7 @@ Supported OCL methods include, categorized by OCL decoding:
 
 - [2026/01/06] Unify interfaces to [RandSF.Q](https://github.com/Genera1Z/RandSF.Q) and [SmoothSA](https://github.com/Genera1Z/SmoothSA), which are our brand new SotA methods!
 - [2025/11/07] Fix ``lmdb`` multiprocessing issues due to ``torch>=3.7``.
-- ⭐⭐⭐ [2025/10/20] ⭐⭐⭐ **Object discovery accuracy values are updated for version 3.
+- ⭐⭐⭐ [2025/10/20] ⭐⭐⭐ Object discovery accuracy values are updated for version 3.
 - [2025/10/19] Version 3: re-implement segmentation evaluation; corresponding new dataset lmdb files are uploaded. Thus, object discovery acc could change a little, especially ARI values.
 
 
